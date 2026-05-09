@@ -1,5 +1,5 @@
 # TrueCost 🚗💰
-[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-Visit_Site-blue?style=for-the-badge)](https://true-cost-final.vercel.app/)
+[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-Visit_Site-blue?style=for-the-badge)](https://true-cost-main.vercel.app)
 
 **TrueCost** is a comprehensive car affordability **"reality check"** platform built to help Malaysians understand the *true* cost of owning a vehicle beyond the sticker price.
 
