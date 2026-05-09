@@ -249,7 +249,9 @@ TrueCost/
 ├── package.json
 └── .env
 ```
+# 🏗️ System Architecture
 
+![TrueCost Architecture](assets/architecture.png)
 ---
 
 # 🧠 AI Implementation
