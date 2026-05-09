@@ -251,7 +251,7 @@ TrueCost/
 ```
 # 🏗️ System Architecture
 
-![TrueCost Architecture](assets/architecture.png)
+![TrueCost Architecture](NotebookLM Mind Map.png)
 ---
 
 # 🧠 AI Implementation
