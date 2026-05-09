@@ -3,10 +3,6 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Car affordability reality check tool",
-  "main": "api/chat.js",
-  "scripts": {
-    "build": "echo 'Static project: no build step required.'"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Risikesan26/Borneo_2.git"
