@@ -1,0 +1,1689 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TrueCost — Car Affordability Reality Check</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="./css/styles.css" />
+  <link rel="stylesheet" href="./css/cinematic.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- Theme init: apply before first paint to avoid flash -->
+  <script>
+    (function () {
+      var saved = localStorage.getItem('tc-theme');
+      // Default is DARK per requirements
+      var theme = (saved === 'light') ? '' : 'dark';
+      if (theme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
+</head>
+
+<body>
+  <div class="cin-stage" id="cin-stage">
+    <video id="test-video" src="./images/video/car2.mp4" muted playsinline preload="auto"></video>
+    <div class="cin-stage__overlay" id="cin-overlay"></div>
+  </div>
+
+  <div class="cin-progress"></div>
+  <div class="cin-canvas-wrap">
+    <canvas></canvas>
+  </div>
+
+  <!-- Fixed brand mark — stays at top during cinematic, hides when nav appears -->
+  <div class="cin-brand-fixed" id="cin-brand">
+    <div class="cin-brand-name">TrueCost</div>
+    <div class="cin-brand-sub">Car Affordability Reality Check</div>
+  </div>
+
+  <div class="cin-header-mask"></div>
+
+  <div class="cin-scroll">
+    <div class="cin-counter">
+      <div class="cin-counter__label">TRUE COST</div>
+      <div class="cin-counter__value">RM 0</div>
+    </div>
+
+    <nav class="nav cin-nav-hidden" id="main-nav">
+      <div class="nav-logo">TrueCost</div>
+      <div class="nav-steps">
+        <div class="nav-step active" id="nav-1" onclick="goPage(1)" data-i18n="nav.step1">
+          01 Overview
+        </div>
+        <div class="nav-step" id="nav-2" onclick="goPage(2)" data-i18n="nav.step2">
+          02 Finances
+        </div>
+        <div class="nav-step" id="nav-7" onclick="goPage(7)">
+          03 Preferences
+        </div>
+        <div class="nav-step" id="nav-3" onclick="goPage(3)" data-i18n="nav.step3">
+          04 Cars
+        </div>
+        <div class="nav-step" id="nav-4" onclick="goPage(4)" data-i18n="nav.step4">
+          05 True Cost
+        </div>
+        <div class="nav-step" id="nav-5" onclick="goPage(5)" data-i18n="nav.step5">
+          06 Scenarios
+        </div>
+        <div class="nav-step" id="nav-6" onclick="goPage(6)" data-i18n="nav.step6">
+          07 AI Insight
+        </div>
+      </div>
+      <div class="nav-controls">
+        <button type="button" id="theme-toggle" onclick="toggleTheme()" title="Toggle theme"
+          aria-label="Toggle dark/light theme">
+          <span class="theme-icon" id="theme-icon">☀️</span>
+        </button>
+        <button type="button" id="lang-toggle" class="btn-ghost" onclick="toggleLang()">
+          BM | EN
+        </button>
+      </div>
+    </nav>
+
+    <!-- ============================================================ PAGE 1 — CINEMATIC SEQUENCE ============================================================ -->
+    <div id="page-1" class="page active">
+      <div class="page-num mobile-progress" id="home-progress" style="display:none">Step 1 of 6</div>
+
+      <!-- Scene 0: Hero — full-screen breathing room with scroll hint -->
+      <section class="cin-scene cin-scene--hero">
+        <div class="cin-scroll-hint">
+          <span class="cin-scroll-hint__text">Scroll to discover</span>
+          <div class="cin-scroll-hint__line"></div>
+        </div>
+      </section>
+
+      <!-- Scene 1: Hook -->
+      <section class="cin-scene">
+        <div class="cin-scene__content">
+          <p class="cin-text cin-reveal cin-reveal--up">You think you're buying a car.</p>
+        </div>
+      </section>
+
+      <!-- Scene 2: Dealer illusion -->
+      <section class="cin-scene">
+        <div class="cin-scene__content">
+          <p class="cin-text cin-text--sub cin-reveal cin-reveal--up">The dealer shows you</p>
+          <p class="cin-text cin-text--price cin-reveal cin-reveal--number" data-delay="1">RM 1,200<span
+              class="cin-text--unit">/month</span></p>
+        </div>
+      </section>
+
+      <!-- Scene 3: Doubt -->
+      <section class="cin-scene">
+        <div class="cin-scene__content">
+          <p class="cin-text cin-reveal cin-reveal--up">But that's only the installment.</p>
+        </div>
+      </section>
+
+      <!-- Scene 4: Hidden -->
+      <section class="cin-scene">
+        <div class="cin-scene__content">
+          <p class="cin-text cin-reveal cin-reveal--up">They don't tell you about</p>
+          <p class="cin-text cin-text--danger cin-reveal cin-reveal--up" data-delay="1">the rest.</p>
+        </div>
+      </section>
+
+      <!-- Scene 5: Cost reveal -->
+      <section class="cin-scene hidden-costs">
+        <div class="cin-scene__content">
+          <p class="cin-text cin-text--cost cin-reveal cin-reveal--left" data-delay="1">⛽ Fuel</p>
+          <p class="cin-text cin-text--cost cin-reveal cin-reveal--left" data-delay="2">🛡️ Insurance</p>
+          <p class="cin-text cin-text--cost cin-reveal cin-reveal--left" data-delay="3">🔧 Maintenance</p>
+          <p class="cin-text cin-text--cost cin-reveal cin-reveal--left" data-delay="4">📉 Depreciation</p>
+        </div>
+      </section>
+
+      <!-- Scene 6: The real cost -->
+      <section class="cin-scene">
+        <div class="cin-scene__content">
+          <p class="cin-text cin-text--sub cin-reveal cin-reveal--up">The real cost?</p>
+        </div>
+      </section>
+
+      <!-- Scene 7: Shock number -->
+      <section class="cin-scene example-section">
+        <div class="cin-scene__content">
+          <p class="cin-text cin-text--shock cin-reveal cin-reveal--number cin-reveal--impact">RM 2,836<span
+              class="cin-text--unit">/month</span></p>
+          <p class="cin-text cin-text--whisper cin-reveal cin-reveal--up" data-delay="2">That's 139% more than they
+            quoted.</p>
+        </div>
+      </section>
+
+      <!-- Scene 8: Emotional pause -->
+      <section class="cin-scene">
+        <div class="cin-scene__content">
+          <p class="cin-text cin-reveal cin-reveal--up">Over 5 years, you'll spend</p>
+          <p class="cin-text cin-text--danger cin-text--lg cin-reveal cin-reveal--number" data-delay="1">RM 170,160</p>
+          <p class="cin-text cin-text--whisper cin-reveal cin-reveal--up" data-delay="2">on a car the dealer said costs
+            RM 71,160.</p>
+        </div>
+      </section>
+
+      <!-- Scene 9: CTA -->
+      <section class="cin-scene cin-scene--cta">
+        <div class="cin-scene__content">
+          <p class="cin-text cin-reveal cin-reveal--up">Before you sign anything—</p>
+          <p class="cin-text cin-text--gold cin-reveal cin-reveal--up" data-delay="1">see the full picture.</p>
+          <div class="cin-reveal cin-reveal--up" data-delay="2" style="margin-top: 3rem">
+            <button class="cin-cta-btn" onclick="goPage(2)" data-i18n="btn.startRealityCheck">
+              Start My Reality Check →
+            </button>
+            <span class="cin-cta-note">Free · 3 minutes · No signup</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============================================================ PAGE 2 ============================================================ -->
+    <div id="page-2" class="page pt-nav">
+      <div class="container" style="max-width:680px">
+        <div class="page-header">
+          <div class="page-num">Step 02 of 07</div>
+          <h1 class="page-title cin-reveal cin-reveal--up" data-i18n="p2.title">
+            Financial Reality Check
+          </h1>
+          <p class="page-desc cin-reveal cin-reveal--up" data-delay="1">
+            Before recommending anything, we need to understand your actual
+            financial position. This takes 2 minutes.
+          </p>
+        </div>
+        <div style="margin-top: 2.5rem">
+          <div class="form-section">
+            <div class="form-section-title" data-i18n="p2.section.core">
+              01 — Core Financials
+            </div>
+            <div class="form-group">
+              <label class="form-label" data-i18n="p2.label.takeHomeSalary">Monthly Take-Home Salary</label>
+              <div class="currency-input-wrap">
+                <span class="currency-symbol">RM</span>
+                <input type="number" class="form-input" id="fi-salary" placeholder="5,000"
+                  data-i18n-placeholder="p2.ph.salary" oninput="recalcFinance()" />
+              </div>
+              <div class="form-hint" data-i18n="p2.hint.salary">After EPF and tax deductions</div>
+            </div>
+            <div class="grid-2">
+              <div class="form-group">
+                <label class="form-label" data-i18n="p2.label.monthlyCommitment">Existing Loan Commitments/mo</label>
+                <div class="currency-input-wrap">
+                  <span class="currency-symbol">RM</span>
+                  <input type="number" class="form-input" id="fi-loans" placeholder="0"
+                    data-i18n-placeholder="p2.ph.loans" oninput="recalcFinance()" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" data-i18n="p2.label.livingExpenses">Monthly Living Expenses</label>
+                <div class="currency-input-wrap">
+                  <span class="currency-symbol">RM</span>
+                  <input type="number" class="form-input" id="fi-expenses" placeholder="2,000"
+                    data-i18n-placeholder="p2.ph.expenses" oninput="recalcFinance()" />
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" data-i18n="p2.label.ptptn">PTPTN repayment (RM/month)</label>
+              <div class="currency-input-wrap">
+                <span class="currency-symbol">RM</span>
+                <input type="number" class="form-input" id="fi-ptptn" placeholder="0"
+                  data-i18n-placeholder="p2.ph.ptptn" oninput="recalcFinance()" />
+              </div>
+              <div class="form-hint">Not sure? Check your PTPTN account at ptptn.gov.my</div>
+            </div>
+            <div class="grid-2">
+              <div class="form-group">
+                <label class="form-label" data-i18n="p2.label.totalSavings">Total Savings</label>
+                <div class="currency-input-wrap">
+                  <span class="currency-symbol">RM</span>
+                  <input type="number" class="form-input" id="fi-savings" placeholder="10,000"
+                    data-i18n-placeholder="p2.ph.savings" oninput="recalcFinance()" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" data-i18n="p2.label.emergencyFund">Emergency Fund</label>
+                <div class="currency-input-wrap">
+                  <span class="currency-symbol">RM</span>
+                  <input type="number" class="form-input" id="fi-emergency" placeholder="0"
+                    data-i18n-placeholder="p2.ph.emergency" oninput="recalcFinance()" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="form-section">
+            <div class="form-section-title">02 — Personal Profile (Optional)</div>
+            <div class="grid-3">
+              <div class="form-group">
+                <label class="form-label" data-i18n="p2.label.age">Age</label>
+                <input type="number" class="form-input" id="fi-age" placeholder="28" data-i18n-placeholder="p2.ph.age"
+                  oninput="recalcFinance()" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" data-i18n="p2.label.dependents">Dependents</label>
+                <input type="number" class="form-input" id="fi-dependents" placeholder="0"
+                  data-i18n-placeholder="p2.ph.dependents" oninput="recalcFinance()" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" data-i18n="p2.label.jobStability">Job Stability</label>
+                <select class="form-select" id="fi-stability" onchange="recalcFinance()">
+                  <option value="high" data-i18n="p2.opt.permanent">Permanent</option>
+                  <option value="medium" selected data-i18n="p2.opt.contract">Contract</option>
+                  <option value="low" data-i18n="p2.opt.freelance">Freelance</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Hidden elements kept for JS compatibility -->
+        <div style="display:none">
+          <span id="res-budget"></span><span id="res-maxprice"></span>
+          <span id="res-disposable"></span><span id="res-remaining"></span>
+          <span id="res-emergency-status"></span><span id="res-dti"></span>
+          <span id="res-badge"></span><span id="res-gauge"></span>
+          <span id="res-advice"></span><span id="term-label">7</span>
+          <button id="lt-5" onclick="setLoanTerm(5,this)"></button>
+          <button id="lt-7" class="active" onclick="setLoanTerm(7,this)"></button>
+          <button id="lt-9" onclick="setLoanTerm(9,this)"></button>
+        </div>
+        <div class="bottom-nav" style="margin-top:2rem">
+          <button class="btn-ghost" onclick="goPage(1)" data-i18n="btn.back">← Back</button>
+          <button class="btn-primary" onclick="goPage(7)" style="flex:1;max-width:300px">
+            Next: Car Preferences →
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ PAGE 7 — CAR PREFERENCES ============================================================ -->
+    <div id="page-7" class="page pt-nav">
+      <div class="container" style="max-width:860px">
+        <div class="page-header">
+          <div class="page-num">Step 03 of 07</div>
+          <h1 class="page-title cin-reveal cin-reveal--up">Car Preferences</h1>
+          <p class="page-desc cin-reveal cin-reveal--up" data-delay="1">
+            Tell us what you're looking for so we can highlight the best-matched vehicles from our database.
+          </p>
+        </div>
+
+        <div class="pref-grid">
+          <!-- Body Type -->
+          <div class="pref-section">
+            <div class="pref-section-title">01 — Body Type</div>
+            <div class="pref-chips" id="pref-body">
+              <div class="pref-chip" onclick="togglePref(this,'bodyType','Sedan')">Sedan</div>
+              <div class="pref-chip" onclick="togglePref(this,'bodyType','Hatchback')">Hatchback</div>
+              <div class="pref-chip" onclick="togglePref(this,'bodyType','SUV')">SUV</div>
+              <div class="pref-chip" onclick="togglePref(this,'bodyType','MPV')">MPV</div>
+              <div class="pref-chip" onclick="togglePref(this,'bodyType','Pickup')">Pickup</div>
+              <div class="pref-chip" onclick="togglePref(this,'bodyType','Coupe')">Coupe</div>
+            </div>
+          </div>
+
+          <!-- Seating Capacity -->
+          <div class="pref-section">
+            <div class="pref-section-title">02 — Seating Capacity</div>
+            <div class="pref-chips" id="pref-seats">
+              <div class="pref-chip" onclick="togglePref(this,'seats','2')">2</div>
+              <div class="pref-chip" onclick="togglePref(this,'seats','4')">4</div>
+              <div class="pref-chip" onclick="togglePref(this,'seats','5')">5</div>
+              <div class="pref-chip" onclick="togglePref(this,'seats','7+')">7+</div>
+              <div class="pref-chip" onclick="togglePref(this,'seats','9+')">9+</div>
+            </div>
+          </div>
+
+          <!-- Engine Type -->
+          <div class="pref-section">
+            <div class="pref-section-title">03 — Engine Type</div>
+            <div class="pref-chips" id="pref-engine">
+              <div class="pref-chip" onclick="togglePref(this,'engineType','Petrol')">Petrol</div>
+              <div class="pref-chip" onclick="togglePref(this,'engineType','Hybrid')">Hybrid</div>
+            </div>
+          </div>
+
+          <!-- Drive Configuration -->
+          <div class="pref-section">
+            <div class="pref-section-title">04 — Drive Configuration</div>
+            <div class="pref-chips" id="pref-drive">
+              <div class="pref-chip" onclick="togglePref(this,'drivetrain','FWD')">FWD</div>
+              <div class="pref-chip" onclick="togglePref(this,'drivetrain','RWD')">RWD</div>
+              <div class="pref-chip" onclick="togglePref(this,'drivetrain','AWD')">AWD</div>
+              <div class="pref-chip" onclick="togglePref(this,'drivetrain','4WD')">4WD</div>
+            </div>
+          </div>
+
+          <!-- Location -->
+          <div class="pref-section" style="grid-column: 1 / -1">
+            <div class="pref-section-title">05 — Your Location</div>
+            <select class="pref-select" id="pref-location"
+              onchange="state.userPrefs.location = this.value; updatePrefSummary()">
+              <option value="">Select your state...</option>
+              <option value="Kuala Lumpur">Kuala Lumpur</option>
+              <option value="Selangor">Selangor</option>
+              <option value="Johor">Johor</option>
+              <option value="Penang">Penang</option>
+              <option value="Perak">Perak</option>
+              <option value="Sabah">Sabah</option>
+              <option value="Sarawak">Sarawak</option>
+              <option value="Kedah">Kedah</option>
+              <option value="Kelantan">Kelantan</option>
+              <option value="Melaka">Melaka</option>
+              <option value="Negeri Sembilan">Negeri Sembilan</option>
+              <option value="Pahang">Pahang</option>
+              <option value="Perlis">Perlis</option>
+              <option value="Terengganu">Terengganu</option>
+              <option value="Putrajaya">Putrajaya</option>
+              <option value="Labuan">Labuan</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Summary bar -->
+        <div class="pref-summary-bar" id="pref-summary-bar" style="display:none">
+          <div>
+            <div class="pref-summary-label">Your Preferences</div>
+            <div class="pref-summary-chips" id="pref-summary-chips"></div>
+          </div>
+
+          <button class="btn-primary" onclick="goPage(3)" style="width: 100%" data-i18n="btn.calculateChooseCar">
+            Calculate &amp; Choose a Car →
+          </button>
+        </div>
+
+        <div class="bottom-nav" style="margin-top:2.5rem">
+          <button class="btn-ghost" onclick="goPage(2)" data-i18n="btn.back">← Back</button>
+          <button class="btn-primary" onclick="applyPrefsAndGo()" style="flex:1;max-width:300px">
+            Find My Cars →
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ PAGE 3 ============================================================ -->
+    <div id="page-3" class="page pt-nav">
+      <div class="container-wide">
+        <div class="page-header">
+          <div class="page-num">Step 04 of 07</div>
+          <h1 class="page-title" data-i18n="p3.title">Select Your Car</h1>
+          <p class="page-desc">
+            Browse Malaysian market options. Cars marked
+            <span style="color: var(--green); font-weight: 600">AI Recommended</span>
+            are financially suited to your profile.
+          </p>
+        </div>
+        <div id="ai-reco-banner" style="
+            margin-top: 1.25rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--green);
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+          ">
+          <div style="display: flex; align-items: center; gap: 0.75rem">
+            <div class="ai-pulse"></div>
+            <div>
+              <div style="
+                  font-family: var(--mono);
+                  font-size: 0.65rem;
+                  letter-spacing: 0.08em;
+                  color: var(--green);
+                ">
+                AI RECOMMENDATION ENGINE
+              </div>
+              <div id="reco-banner-text" data-i18n="p3.recoHint" style="
+                  font-size: 0.82rem;
+                  color: var(--text-dim);
+                  margin-top: 0.15rem;
+                ">
+                Complete Step 2 first, then click to get AI-suggested cars
+                highlighted on the grid below.
+              </div>
+            </div>
+          </div>
+          <button class="btn-secondary" id="btn-reco-p3" data-i18n="btn.getAiPicks" onclick="runRecommendationsP3()"
+            style="
+              padding: 0.5rem 1rem;
+              font-size: 0.68rem;
+              white-space: nowrap;
+              border-color: var(--green);
+              color: var(--green);
+            ">
+            ✦ Get AI Picks
+          </button>
+        </div>
+      </div>
+
+
+      <!-- Active Filters Display -->
+      <div id="active-filters-container" class="container-wide"
+        style="display:none; padding-top:1rem; padding-bottom: 0.2rem;">
+        <div style="font-family:var(--mono); font-size:0.65rem; color:var(--text-dim); margin-bottom:0.4rem;"
+          id="active-filters-text">Showing cars matching:</div>
+        <div id="active-filters-chips" style="display:flex; flex-wrap:wrap; gap:0.4rem; align-items:center;"></div>
+      </div>
+
+      <div class="filter-bar" style="padding: 0.9rem 0">
+        <div class="container-wide">
+          <!-- Row 1: Search + Sort + Count -->
+          <div style="
+              display: flex;
+              gap: 0.6rem;
+              align-items: center;
+              flex-wrap: wrap;
+              margin-bottom: 0.6rem;
+            ">
+            <input type="text" id="filter-search" class="filter-select" placeholder="🔍 Search make / model..."
+              data-i18n-placeholder="p3.ph.search" style="width: 220px; padding: 0.45rem 0.75rem"
+              oninput="applyFilters()" />
+            <select class="filter-select" id="filter-sort" onchange="applyFilters()" style="min-width: 150px">
+              <option value="" data-i18n="p3.sort.default">
+                Sort: Default
+              </option>
+              <option value="price-asc">Price: Low → High</option>
+              <option value="price-desc">Price: High → Low</option>
+              <option value="year-desc">Year: Newest First</option>
+              <option value="year-asc">Year: Oldest First</option>
+            </select>
+            <span style="
+                font-family: var(--mono);
+                font-size: 0.65rem;
+                color: var(--text-dim);
+                margin-left: auto;
+              "><span id="car-count">—</span> cars</span>
+          </div>
+          <!-- Row 2: Dropdowns -->
+          <div class="filter-row">
+            <select class="filter-select" id="filter-brand" onchange="onMakeChange()">
+              <option value="" data-i18n="p3.filter.allMakes">All Makes</option>
+            </select>
+            <select class="filter-select" id="filter-model" onchange="applyFilters()">
+              <option value="" data-i18n="p3.filter.allModels">
+                All Models
+              </option>
+            </select>
+            <select class="filter-select" id="filter-condition" onchange="applyFilters()">
+              <option value="" data-i18n="p3.filter.allConditions">
+                All Conditions
+              </option>
+              <option value="New">New</option>
+              <option value="Recond">Recond</option>
+              <option value="Used">Used</option>
+            </select>
+            <select class="filter-select" id="filter-body" onchange="applyFilters()">
+              <option value="" data-i18n="p3.filter.allBodyTypes">
+                All Body Types
+              </option>
+              <option value="Sedan">Sedan</option>
+              <option value="Hatchback">Hatchback</option>
+              <option value="SUV">SUV</option>
+              <option value="MPV">MPV</option>
+              <option value="Coupe">Coupe</option>
+              <option value="Wagon">Wagon</option>
+              <option value="Convertible">Convertible</option>
+            </select>
+            <select class="filter-select" id="filter-price" onchange="applyFilters()">
+              <option value="" data-i18n="p3.filter.anyPrice">Any Price</option>
+              <option value="30000">Under RM 30k</option>
+              <option value="50000">Under RM 50k</option>
+              <option value="80000">Under RM 80k</option>
+              <option value="120000">Under RM 120k</option>
+              <option value="200000">Under RM 200k</option>
+              <option value="500000">Under RM 500k</option>
+            </select>
+            <button class="btn-ghost" style="font-size: 0.65rem; padding: 0.4rem 0.9rem" onclick="resetFilters()"
+              data-i18n="btn.clear">
+              ✕ Clear
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Recommendation Output Container -->
+      <div id="ai-recommendation-results" class="container-wide"
+        style="display: none; padding-top: 1.5rem; padding-bottom: 0.5rem;">
+        <div id="ai-new-cars-section" style="margin-bottom: 1.5rem;">
+          <div
+            style="font-family: var(--mono); font-size: 0.75rem; color: var(--green); margin-bottom: 0.75rem; letter-spacing: 0.05em; font-weight: bold;">
+            ✦ RECOMMENDED NEW CARS</div>
+          <div id="ai-new-cars-grid" class="cars-grid"
+            style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));"></div>
+        </div>
+        <div id="ai-used-cars-section" style="margin-bottom: 1.5rem;">
+          <div
+            style="font-family: var(--mono); font-size: 0.75rem; color: var(--gold); margin-bottom: 0.75rem; letter-spacing: 0.05em; font-weight: bold;">
+            ✦ RECOMMENDED USED/RECON CARS</div>
+          <div id="ai-used-cars-grid" class="cars-grid"
+            style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));"></div>
+        </div>
+        <div style="margin-top: 1.5rem; margin-bottom: 1rem; border-bottom: 1px dashed var(--border);"></div>
+      </div>
+
+      <div class="container-wide">
+        <div class="cars-grid" id="cars-grid"></div>
+        <div id="pagination-row" style="margin-bottom: 1rem"></div>
+        <div class="bottom-nav">
+          <button class="btn-ghost" onclick="goPage(7)" data-i18n="btn.back">
+            ← Back
+          </button>
+          <button class="btn-primary" id="btn-next-4" onclick="goPage(4)" disabled style="opacity: 0.4"
+            data-i18n="btn.viewTrueCost">
+            View True Cost →
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ PAGE 4 ============================================================ -->
+    <div id="page-4" class="page pt-nav">
+      <div class="container">
+        <div class="page-header">
+          <div class="page-num">Step 05 of 07</div>
+          <h1 class="page-title cin-reveal cin-reveal--up" id="p4-title" data-i18n="p4.title">
+            True Cost Breakdown
+          </h1>
+          <p class="page-desc cin-reveal cin-reveal--up" data-delay="1">
+            Every ringgit you'll spend owning this car — not just the installment the dealer quoted you.
+          </p>
+        </div>
+
+        <!-- ── ACCORDION ── -->
+        <div class="cost-accordion">
+
+          <!-- 1. LOAN INSTALLMENT -->
+          <div class="cost-accordion-item" id="acc-loan">
+            <div class="cost-accordion-header" onclick="toggleAccordion('acc-loan')">
+              <div class="cost-accordion-left">
+                <div class="cost-accordion-icon">🏦</div>
+                <div>
+                  <div class="cost-accordion-name">Loan Installment</div>
+                  <div class="cost-accordion-sub">Down payment · tenure · interest rate</div>
+                </div>
+              </div>
+              <div class="cost-accordion-right">
+                <div class="cost-accordion-amount" id="cb-loan">RM —</div>
+                <div class="cost-accordion-chevron">▶</div>
+              </div>
+            </div>
+            <div class="cost-accordion-body">
+              <div class="cost-accordion-inner">
+                <div class="fuel-controls" style="margin-top:0">
+                  <div class="fuel-control-row">
+                    <div class="fuel-control-group">
+                      <label class="fuel-control-label">Down Payment</label>
+                      <div class="fuel-slider-wrap">
+                        <input type="range" id="cost-downpayment" class="fuel-slider" min="0" max="50" value="10"
+                          step="5" oninput="onCostInputChange()" />
+                        <span class="fuel-slider-val" id="cost-dp-display">10%</span>
+                      </div>
+                    </div>
+                    <div class="fuel-control-group">
+                      <label class="fuel-control-label">Loan Tenure</label>
+                      <select id="cost-tenure" class="fuel-select" onchange="onCostInputChange()">
+                        <option value="5">5 years</option>
+                        <option value="7">7 years</option>
+                        <option value="9" selected>9 years</option>
+                      </select>
+                    </div>
+                    <div class="fuel-control-group">
+                      <label class="fuel-control-label">Interest Rate</label>
+                      <select id="cost-rate" class="fuel-select" onchange="onCostInputChange()">
+                        <option value="auto">Auto (by condition)</option>
+                        <option value="2.5">2.50% flat</option>
+                        <option value="3.0">3.00% flat</option>
+                        <option value="3.5">3.50% flat</option>
+                        <option value="4.0">4.00% flat</option>
+                        <option value="4.5">4.50% flat</option>
+                        <option value="5.0">5.00% flat</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div id="loan-detail-panel" class="fuel-detail-panel"></div>
+                <button type="button" class="disclosure-toggle" onclick="toggleFormulaDisclosure('fd-loan', this)">▸ How
+                  we calculated this</button>
+                <div id="fd-loan" class="formula-disclosure">
+                  <div class="formula-row"><span class="formula-key">Formula</span><span class="formula-val"
+                      id="fd-loan-formula-val">Total = Principal + (Principal × Flat Rate × Years). Monthly = Total ÷
+                      Months.</span></div>
+                  <div class="formula-row"><span class="formula-key">Inputs used</span><span class="formula-val"
+                      id="fd-loan-inputs">—</span></div>
+                  <div class="formula-row"><span class="formula-key">Source</span><span class="formula-val"
+                      id="fd-loan-source">Standard Malaysian hire purchase (flat rate). Max tenure: 9yr new, (9−age)yr
+                      used.</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. FUEL -->
+          <div class="cost-accordion-item" id="acc-fuel">
+            <div class="cost-accordion-header" onclick="toggleAccordion('acc-fuel')">
+              <div class="cost-accordion-left">
+                <div class="cost-accordion-icon">⛽</div>
+                <div>
+                  <div class="cost-accordion-name" id="cb-fuel-label">Fuel</div>
+                  <div class="cost-accordion-sub">Commute · fuel type · subsidy · real-world adjustments</div>
+                </div>
+              </div>
+              <div class="cost-accordion-right">
+                <div class="cost-accordion-amount" id="cb-fuel">RM —</div>
+                <div class="cost-accordion-chevron">▶</div>
+              </div>
+            </div>
+            <div class="cost-accordion-body">
+              <div class="cost-accordion-inner">
+                <div class="fuel-controls" style="margin-top:0">
+                  <div class="fuel-control-row">
+                    <div class="fuel-control-group">
+                      <label class="fuel-control-label">Daily Commute (round trip)</label>
+                      <div class="fuel-slider-wrap">
+                        <input type="range" id="fuel-commute" class="fuel-slider" min="5" max="200" value="40" step="5"
+                          oninput="onFuelInputChange()" />
+                        <span class="fuel-slider-val" id="fuel-commute-display">40 km</span>
+                      </div>
+                    </div>
+                    <div class="fuel-control-group">
+                      <label class="fuel-control-label">Fuel Type</label>
+                      <select id="fuel-type" class="fuel-select" onchange="onFuelInputChange()">
+                        <option value="auto">Auto-detect</option>
+                        <option value="RON95">RON 95</option>
+                        <option value="RON97">RON 97</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="fuel-control-row">
+                    <label class="fuel-checkbox-label">
+                      <input type="checkbox" id="fuel-subsidy" checked onchange="onFuelInputChange()" />
+                      <span>I have fuel subsidy (first 200L/mo at RM 2.05, then RM 4.02/L)</span>
+                    </label>
+                  </div>
+                  <div class="fuel-adjustments-toggle">
+                    <button type="button" class="disclosure-toggle"
+                      onclick="document.getElementById('fuel-adjustments').classList.toggle('open'); this.textContent = document.getElementById('fuel-adjustments').classList.contains('open') ? '▾ Hide adjustments' : '▸ Real-world adjustments'">▸
+                      Real-world adjustments</button>
+                  </div>
+                  <div id="fuel-adjustments" class="fuel-adjustments-panel formula-disclosure">
+                    <div class="fuel-control-row fuel-adj-row">
+                      <div class="fuel-control-group">
+                        <label class="fuel-control-label">🚦 Traffic</label>
+                        <select id="fuel-traffic" class="fuel-select" onchange="onFuelInputChange()">
+                          <option value="low">Low (×1.0)</option>
+                          <option value="medium" selected>Medium (×1.1)</option>
+                          <option value="heavy">Heavy (×1.25)</option>
+                        </select>
+                      </div>
+                      <div class="fuel-control-group">
+                        <label class="fuel-control-label">🏎️ Driving Style</label>
+                        <select id="fuel-driving" class="fuel-select" onchange="onFuelInputChange()">
+                          <option value="eco">Eco (×0.95)</option>
+                          <option value="normal" selected>Normal (×1.0)</option>
+                          <option value="aggressive">Aggressive (×1.15)</option>
+                        </select>
+                      </div>
+                      <div class="fuel-control-group">
+                        <label class="fuel-control-label">❄️ AC Usage</label>
+                        <select id="fuel-ac" class="fuel-select" onchange="onFuelInputChange()">
+                          <option value="off">Off (×1.0)</option>
+                          <option value="normal" selected>Normal (×1.05)</option>
+                          <option value="heavy">Heavy (×1.1)</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div id="fuel-detail-panel" class="fuel-detail-panel"></div>
+                <button type="button" class="disclosure-toggle" onclick="toggleFormulaDisclosure('fd-fuel', this)">▸ How
+                  we calculated this</button>
+                <div id="fd-fuel" class="formula-disclosure">
+                  <div class="formula-row"><span class="formula-key">Formula</span><span class="formula-val"
+                      id="fd-fuel-formula-val">Fuel Used = Distance ÷ Efficiency × Traffic × Driving × AC multipliers.
+                      Cost = Liters × Fuel Price.</span></div>
+                  <div class="formula-row"><span class="formula-key">Inputs used</span><span class="formula-val"
+                      id="fd-fuel-inputs">—</span></div>
+                  <div class="formula-row"><span class="formula-key">Source</span><span class="formula-val"
+                      id="fd-fuel-source">KPDNHEP fuel prices, industry fuel consumption averages for Malaysian
+                      market.</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. INSURANCE -->
+          <div class="cost-accordion-item" id="acc-insurance">
+            <div class="cost-accordion-header" onclick="toggleAccordion('acc-insurance')">
+              <div class="cost-accordion-left">
+                <div class="cost-accordion-icon">🛡️</div>
+                <div>
+                  <div class="cost-accordion-name">Insurance</div>
+                  <div class="cost-accordion-sub">Comprehensive · PIAM tariff · NCD discount</div>
+                </div>
+              </div>
+              <div class="cost-accordion-right">
+                <div class="cost-accordion-amount" id="cb-insurance">RM —</div>
+                <div class="cost-accordion-chevron">▶</div>
+              </div>
+            </div>
+            <div class="cost-accordion-body">
+              <div class="cost-accordion-inner">
+                <div class="fuel-controls" style="margin-top:0">
+                  <div class="fuel-control-row">
+                    <div class="fuel-control-group">
+                      <label class="fuel-control-label">NCD (No Claim Discount)</label>
+                      <select id="cost-ncd" class="fuel-select" onchange="onCostInputChange()">
+                        <option value="0">0% — First year / claim made</option>
+                        <option value="25">25% — 1 year no claim</option>
+                        <option value="30">30% — 2 years no claim</option>
+                        <option value="38.33">38.33% — 3 years no claim</option>
+                        <option value="45">45% — 4 years no claim</option>
+                        <option value="55" selected>55% — 5+ years no claim</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div id="insurance-detail-panel" class="fuel-detail-panel"></div>
+                <button type="button" class="disclosure-toggle"
+                  onclick="toggleFormulaDisclosure('fd-insurance', this)">▸ How we calculated this</button>
+                <div id="fd-insurance" class="formula-disclosure">
+                  <div class="formula-row"><span class="formula-key">Formula</span><span class="formula-val"
+                      id="fd-insurance-formula-val">PIAM tiered tariff on sum insured, plus age loading, minus NCD
+                      discount.</span></div>
+                  <div class="formula-row"><span class="formula-key">Inputs used</span><span class="formula-val"
+                      id="fd-insurance-inputs">—</span></div>
+                  <div class="formula-row"><span class="formula-key">Source</span><span class="formula-val"
+                      id="fd-insurance-source">BNM/PIAM Motor Insurance Tariff (Peninsular Malaysia,
+                      Comprehensive).</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. ROAD TAX -->
+          <div class="cost-accordion-item" id="acc-roadtax">
+            <div class="cost-accordion-header" onclick="toggleAccordion('acc-roadtax')">
+              <div class="cost-accordion-left">
+                <div class="cost-accordion-icon">🧾</div>
+                <div>
+                  <div class="cost-accordion-name">Road Tax</div>
+                  <div class="cost-accordion-sub">JPJ schedule · engine CC · Peninsular rate</div>
+                </div>
+              </div>
+              <div class="cost-accordion-right">
+                <div class="cost-accordion-amount" id="cb-roadtax">RM —</div>
+                <div class="cost-accordion-chevron">▶</div>
+              </div>
+            </div>
+            <div class="cost-accordion-body">
+              <div class="cost-accordion-inner">
+                <div id="roadtax-detail-panel" class="fuel-detail-panel"></div>
+                <button type="button" class="disclosure-toggle" onclick="toggleFormulaDisclosure('fd-roadtax', this)">▸
+                  How we calculated this</button>
+                <div id="fd-roadtax" class="formula-disclosure">
+                  <div class="formula-row"><span class="formula-key">Formula</span><span class="formula-val"
+                      id="fd-roadtax-formula-val">JPJ tiered schedule by engine CC (Peninsular, private vehicle).</span>
+                  </div>
+                  <div class="formula-row"><span class="formula-key">Inputs used</span><span class="formula-val"
+                      id="fd-roadtax-inputs">—</span></div>
+                  <div class="formula-row"><span class="formula-key">Source</span><span class="formula-val"
+                      id="fd-roadtax-source">JPJ Jadual Cukai Jalan (Semenanjung Malaysia, Saloon/Private).</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. MAINTENANCE -->
+          <div class="cost-accordion-item" id="acc-maint">
+            <div class="cost-accordion-header" onclick="toggleAccordion('acc-maint')">
+              <div class="cost-accordion-left">
+                <div class="cost-accordion-icon">🔧</div>
+                <div>
+                  <div class="cost-accordion-name">Maintenance</div>
+                  <div class="cost-accordion-sub">Brand tier · car age · service centre type</div>
+                </div>
+              </div>
+              <div class="cost-accordion-right">
+                <div class="cost-accordion-amount" id="cb-maint">RM —</div>
+                <div class="cost-accordion-chevron">▶</div>
+              </div>
+            </div>
+            <div class="cost-accordion-body">
+              <div class="cost-accordion-inner">
+                <div class="fuel-controls" style="margin-top:0">
+                  <div class="fuel-control-row">
+                    <div class="fuel-control-group">
+                      <label class="fuel-control-label">Service Centre</label>
+                      <select id="cost-service-type" class="fuel-select" onchange="onCostInputChange()">
+                        <option value="authorized" selected>Authorized (×1.0)</option>
+                        <option value="independent">Independent (×0.65)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div id="maint-detail-panel" class="fuel-detail-panel"></div>
+                <button type="button" class="disclosure-toggle" onclick="toggleFormulaDisclosure('fd-maint', this)">▸
+                  How we calculated this</button>
+                <div id="fd-maint" class="formula-disclosure">
+                  <div class="formula-row"><span class="formula-key">Formula</span><span class="formula-val"
+                      id="fd-maint-formula-val">Brand tier base × car age factor × service type × engine CC
+                      factor.</span></div>
+                  <div class="formula-row"><span class="formula-key">Inputs used</span><span class="formula-val"
+                      id="fd-maint-inputs">—</span></div>
+                  <div class="formula-row"><span class="formula-key">Source</span><span class="formula-val"
+                      id="fd-maint-source">Industry averages by brand tier (Budget/Japanese/European/Luxury).</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 6. TOLL & PARKING — Manual Input -->
+          <div class="cost-accordion-item" id="acc-toll">
+            <div class="cost-accordion-header" onclick="toggleAccordion('acc-toll')">
+              <div class="cost-accordion-left">
+                <div class="cost-accordion-icon">🅿️</div>
+                <div>
+                  <div class="cost-accordion-name">Toll &amp; Parking</div>
+                  <div class="cost-accordion-sub">Enter your actual monthly amounts</div>
+                </div>
+              </div>
+              <div class="cost-accordion-right">
+                <div class="cost-accordion-amount" id="cb-hidden">RM —</div>
+                <div class="cost-accordion-chevron">▶</div>
+              </div>
+            </div>
+            <div class="cost-accordion-body">
+              <div class="cost-accordion-inner">
+                <div class="manual-inputs-grid">
+                  <div class="manual-input-group">
+                    <div class="manual-input-label">Monthly Toll</div>
+                    <div class="manual-rm-wrap">
+                      <span class="manual-rm-prefix">RM</span>
+                      <input type="number" class="manual-input" id="tp-monthly-toll" placeholder="110" min="0" step="10"
+                        oninput="onTollParkingChange()" />
+                    </div>
+                  </div>
+                  <div class="manual-input-group">
+                    <div class="manual-input-label">Monthly Parking</div>
+                    <div class="manual-rm-wrap">
+                      <span class="manual-rm-prefix">RM</span>
+                      <input type="number" class="manual-input" id="tp-monthly-parking" placeholder="150" min="0"
+                        step="10" oninput="onTollParkingChange()" />
+                    </div>
+                  </div>
+                </div>
+                <div class="tp-note">
+                  These amounts are added directly to your total ownership cost. Enter RM 0 if not applicable.
+                </div>
+                <div id="tp-detail-panel" class="fuel-detail-panel" style="margin-top:0.75rem"></div>
+                <!-- Hidden sliders kept for JS compatibility, driven by number inputs above -->
+                <div style="display:none">
+                  <input type="range" id="cost-toll" value="5" oninput="onCostInputChange()" />
+                  <select id="cost-parking">
+                    <option value="150" selected>150</option>
+                  </select>
+                  <span id="cost-toll-display"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 7. DEPRECIATION -->
+          <div class="cost-accordion-item" id="acc-deprec">
+            <div class="cost-accordion-header" onclick="toggleAccordion('acc-deprec')">
+              <div class="cost-accordion-left">
+                <div class="cost-accordion-icon">📉</div>
+                <div>
+                  <div class="cost-accordion-name">Depreciation</div>
+                  <div class="cost-accordion-sub">Age-curve · brand retention · 5-year value loss</div>
+                </div>
+              </div>
+              <div class="cost-accordion-right">
+                <div class="cost-accordion-amount" id="cb-deprec">RM —</div>
+                <div class="cost-accordion-chevron">▶</div>
+              </div>
+            </div>
+            <div class="cost-accordion-body">
+              <div class="cost-accordion-inner">
+                <div id="deprec-detail-panel" class="fuel-detail-panel"></div>
+                <button type="button" class="disclosure-toggle" onclick="toggleFormulaDisclosure('fd-deprec', this)">▸
+                  How we calculated this</button>
+                <div id="fd-deprec" class="formula-disclosure">
+                  <div class="formula-row"><span class="formula-key">Formula</span><span class="formula-val"
+                      id="fd-deprec-formula-val">Car value × age-based rate (adjusted by brand retention class) ÷
+                      12.</span></div>
+                  <div class="formula-row"><span class="formula-key">Inputs used</span><span class="formula-val"
+                      id="fd-deprec-inputs">—</span></div>
+                  <div class="formula-row"><span class="formula-key">Source</span><span class="formula-val"
+                      id="fd-deprec-source">Malaysian used car market depreciation curves by brand and age.</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- end .cost-accordion -->
+
+        <!-- ── TOTAL CARD ── -->
+        <div class="cost-total-card">
+          <div>
+            <div class="cost-total-label">True Monthly Ownership Cost</div>
+            <div class="cost-total-amount cin-reveal cin-reveal--number cin-reveal--impact" id="cb-total">RM —</div>
+            <div class="cost-total-5yr">5-Year Total: <span id="cb-5yr" style="color:var(--gold)">RM —</span></div>
+          </div>
+          <div style="text-align:right">
+            <div class="cost-total-label">Financial Safety Rating</div>
+            <div style="margin-top:0.5rem">
+              <span class="badge" id="cb-safety" style="font-size:0.75rem;padding:0.4rem 1rem">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── INCOME GAUGE ── -->
+        <div class="income-gauge" style="margin-top:1.5rem">
+          <div class="label"
+            style="font-family:var(--mono);font-size:0.65rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:1.25rem">
+            Income Allocation</div>
+          <div class="grid-2" style="gap:2rem;align-items:center">
+            <div>
+              <div class="income-percent text-gold" id="ig-pct"
+                style="font-size:4rem;font-family:'Playfair Display',serif;font-weight:700;line-height:1">—%</div>
+              <div style="font-size:0.85rem;color:var(--text-dim);margin-top:0.25rem">of monthly income goes to this car
+              </div>
+              <div style="font-family:var(--mono);font-size:0.7rem;color:var(--text-faint);margin-top:0.5rem">
+                Recommended maximum: 20–30%</div>
+            </div>
+            <div>
+              <div class="gauge-bar" style="height:10px;border-radius:5px;background:var(--surface2);overflow:hidden">
+                <div class="gauge-fill" id="ig-bar"
+                  style="height:100%;width:0%;transition:width 0.8s ease,background 0.8s ease"></div>
+              </div>
+              <div class="gauge-labels"
+                style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:0.6rem;color:var(--text-faint);margin-top:0.5rem">
+                <span>0%</span><span>25%</span><span>30%+</span>
+              </div>
+              <div id="ig-advice" style="margin-top:1rem;font-size:0.8rem;color:var(--text-dim);line-height:1.5"></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:1.25rem;display:flex;gap:0.75rem;flex-wrap:wrap;justify-content:flex-end">
+          <button class="btn-primary" onclick="shareTrueCostWhatsApp()" data-i18n="btn.shareWhatsapp">Share on
+            WhatsApp</button>
+          <button class="btn-secondary" onclick="downloadTrueCostCard()"
+            style="border-color:var(--gold);color:var(--gold)" data-i18n="btn.downloadCard">Download Card</button>
+        </div>
+
+        <div class="bottom-nav">
+          <button class="btn-ghost" onclick="goPage(3)" data-i18n="btn.back">← Back</button>
+          <button class="btn-primary" onclick="goPage(5)" data-i18n="btn.viewScenarios">View Scenarios →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ PAGE 5 ============================================================ -->
+    <div id="page-5" class="page pt-nav">
+      <div class="container">
+        <div class="page-header">
+          <div class="page-num">Step 05 of 06</div>
+          <h1 class="page-title cin-reveal cin-reveal--up" id="p5-title" data-i18n="p5.title">
+            Wealth Gap Analysis
+          </h1>
+          <p class="page-desc cin-reveal cin-reveal--up" data-delay="1" id="p5-desc">
+            Two paths, one decision. See exactly how much wealth you build — or
+            sacrifice — depending on which car you choose.
+          </p>
+        </div>
+
+        <!-- Used car smart choice message -->
+        <div id="p5-used-car-message" style="display:none;margin-top:2rem;padding:1.5rem;
+          background:rgba(76,175,125,0.08);border:1px solid rgba(76,175,125,0.25);
+          border-left:4px solid var(--green);border-radius:6px">
+          <div style="font-family:var(--mono);font-size:0.65rem;letter-spacing:0.1em;
+            color:var(--green);margin-bottom:0.5rem">✓ SMART CHOICE CONFIRMED</div>
+          <div style="font-size:1rem;font-weight:700;color:var(--text);margin-bottom:0.5rem">
+            You already chose a used car — the financially smarter path.
+          </div>
+          <div style="font-size:0.82rem;color:var(--text-dim);line-height:1.6">
+            New cars lose <strong style="color:var(--gold)">15–20% of their value</strong> in year one alone.
+            By choosing a pre-owned vehicle, you've already bypassed the steepest depreciation curve.
+            The analysis below reflects your true ownership cost — already optimised.
+          </div>
+          <div style="margin-top:1rem;display:flex;gap:1.5rem;flex-wrap:wrap">
+            <div>
+              <div style="font-family:var(--mono);font-size:0.6rem;color:var(--text-faint)">DEPRECIATION AVOIDED (YR 1)
+              </div>
+              <div style="font-family:var(--mono);font-size:1.1rem;font-weight:700;color:var(--green)"
+                id="p5-deprec-saved">—</div>
+            </div>
+            <div>
+              <div style="font-family:var(--mono);font-size:0.6rem;color:var(--text-faint)">ESTIMATED NEW CAR EQUIVALENT
+              </div>
+              <div style="font-family:var(--mono);font-size:1.1rem;font-weight:700;color:var(--gold)" id="p5-new-equiv">
+                —</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="wc-stats" style="margin-top: 2rem">
+          <div class="wc-stat cin-reveal cin-reveal--up" data-delay="1">
+            <div class="wc-stat-icon">🔢</div>
+            <div class="wc-stat-label">Monthly Saving (Used vs New)</div>
+            <div class="wc-stat-val" id="wc-monthly-saving" style="color: #c9a84c">
+              RM —
+            </div>
+          </div>
+          <div class="wc-stat cin-reveal cin-reveal--up" data-delay="2">
+            <div class="wc-stat-icon">📈</div>
+            <div class="wc-stat-label">5-Year Wealth (7% p.a.)</div>
+            <div class="wc-stat-val" id="wc-5yr-wealth" style="color: #4caf7d">
+              RM —
+            </div>
+          </div>
+          <div class="wc-stat cin-reveal cin-reveal--up" data-delay="3">
+            <div class="wc-stat-icon">🏆</div>
+            <div class="wc-stat-label">10-Year Wealth (7% p.a.)</div>
+            <div class="wc-stat-val" id="wc-10yr-wealth" style="color: #c9a84c">
+              RM —
+            </div>
+          </div>
+        </div>
+
+        <div class="wc-panel wc-visible" id="wc-panel-chart">
+          <div class="wc-horizon-row">
+            <span class="wc-horizon-label" data-i18n="p5.horizon">Horizon:</span>
+            <button class="wc-horizon-btn wc-h-active" id="wc-h5" onclick="setHorizon(5, this)" data-i18n="p5.h5">
+              5 Years
+            </button>
+            <button class="wc-horizon-btn" id="wc-h10" onclick="setHorizon(10, this)" data-i18n="p5.h10">
+              10 Years
+            </button>
+          </div>
+
+          <div class="wc-chart-box">
+            <div class="wc-chart-title" id="wc-line-title">
+              Investment Portfolio Growth — The smarter alternative vs Your
+              chosen car
+            </div>
+            <svg class="wc-svg" id="wc-line-svg" viewBox="0 0 760 220" preserveAspectRatio="xMidYMid meet"></svg>
+            <div style="display: flex; gap: 20px; margin-top: 12px; flex-wrap: wrap;">
+              <div
+                style="display: flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 0.65rem; color: var(--text-faint);">
+                <div style="width: 20px; height: 2px; background: #3a3a3a; border-radius: 2px;"></div>
+                Your chosen car — New Car (RM 0 invested)
+              </div>
+              <div
+                style="display: flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 0.65rem; color: var(--text-faint);">
+                <div style="width: 20px; height: 3px; background: #4caf7d; border-radius: 2px;"></div>
+                The smarter alternative — Pre-owned (savings invested at 7% p.a.)
+              </div>
+            </div>
+          </div>
+
+          <div class="wc-bar-chart" style="margin-bottom: 1.5rem">
+            <div class="wc-chart-title">
+              Total Cost vs Wealth Built Over Selected Horizon
+            </div>
+            <div class="wc-bar-row">
+              <div class="wc-bar-label">Your chosen car Cost</div>
+              <div class="wc-bar-track">
+                <div class="wc-bar-fill" id="wc-bar-new" style="width: 0%; background: #e05252">
+                  RM —
+                </div>
+              </div>
+            </div>
+            <div class="wc-bar-row" id="trackb-bar-row">
+              <div class="wc-bar-label">The smarter alternative Cost</div>
+              <div class="wc-bar-track">
+                <div class="wc-bar-fill" id="wc-bar-used" style="width: 0%; background: #4caf7d">
+                  RM —
+                </div>
+              </div>
+            </div>
+            <div class="wc-bar-row">
+              <div class="wc-bar-label" style="color: var(--text)" id="bar-b-label">
+                Wealth Built
+              </div>
+              <div class="wc-bar-track">
+                <div class="wc-bar-fill" id="wc-bar-wealth" style="width: 0%; background: #c9a84c">
+                  RM —
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="trackb-panel">
+            <div class="wc-tracks">
+              <div class="wc-track wc-track-a">
+                <div class="wc-track-label" style="color: #e05252">
+                  Your chosen car — New Car
+                </div>
+                <div id="tracka-car-card" style="margin-bottom: 16px"></div>
+                <div class="wc-track-emi" id="wc-a-emi" style="color: #e05252">
+                  RM —
+                </div>
+                <div class="wc-track-sub">/month total ownership cost</div>
+                <div style="font-family: var(--mono); font-size: 0.65rem; color: var(--text-faint);">
+                  Invested monthly
+                </div>
+                <div
+                  style="font-family: var(--mono); font-size: 0.85rem; color: #3a3a3a; font-weight: 700; margin-bottom: 4px;">
+                  RM 0
+                </div>
+                <div class="wc-track-outcome" style="color: #e05252" id="wc-a-outcome">
+                  RM 0 portfolio after selected horizon
+                </div>
+              </div>
+              <div class="wc-track wc-track-b">
+                <div class="wc-track-label" style="color: #4caf7d" id="wc-b-label">
+                  The smarter alternative — Alternative Option (~65% of price)
+                </div>
+                <div id="trackb-car-card" style="margin-bottom: 16px"></div>
+                <div class="wc-track-emi" id="wc-b-emi" style="color: #4caf7d">
+                  RM —
+                </div>
+                <div class="wc-track-sub">/month lower total cost</div>
+                <div style="font-family: var(--mono); font-size: 0.65rem; color: var(--text-faint);">
+                  Monthly saving invested
+                </div>
+                <div
+                  style="font-family: var(--mono); font-size: 0.85rem; color: var(--gold); font-weight: 700; margin-bottom: 4px;"
+                  id="wc-b-monthly-saving">
+                  RM —
+                </div>
+                <div class="wc-track-outcome" style="color: #c9a84c" id="wc-b-outcome">
+                  RM — portfolio value
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-nav" style="max-width: 1000px; margin: 0 auto; padding: 1.5rem clamp(1rem, 3vw, 2rem) 3rem;">
+        <button class="btn-ghost" onclick="goPage(4)" data-i18n="btn.back">
+          ← Back
+        </button>
+        <button class="btn-primary" onclick="goPage(6)" data-i18n="btn.getAiInsights">
+          Get AI Insights →
+        </button>
+      </div>
+    </div>
+
+    <!-- ============================================================ PAGE 6 ============================================================ -->
+    <div id="page-6" class="page pt-nav">
+      <div class="container">
+        <div class="page-header">
+          <div class="page-num">Step 06 of 06</div>
+          <h1 class="page-title" data-i18n="p6.title">AI Financial Advisor</h1>
+          <p class="page-desc">
+            Personalised AI analysis of your car purchase decision —
+            affordability, risks, and smarter alternatives.
+          </p>
+        </div>
+        <div style="margin-top: 2rem">
+          <div
+            style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+            <div class="label" data-i18n="p6.analysisLabel">
+              AI Financial Analysis
+            </div>
+            <button class="btn-primary" id="btn-analyze" onclick="runFullAnalysis()"
+              style="padding: 0.6rem 1.2rem; font-size: 0.68rem" data-i18n="btn.generateAnalysis">
+              ⚡ Generate Analysis
+            </button>
+          </div>
+          <div id="analysis-panel"
+            style="background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--gold); padding: 1.75rem; min-height: 120px; position: relative;">
+            <div id="analysis-placeholder" style="display: flex; align-items: center; gap: 1rem">
+              <div style="font-size: 2rem">🤖</div>
+              <div>
+                <div style="font-family: var(--mono); font-size: 0.75rem; color: var(--text-dim);"
+                  data-i18n="p6.waiting">
+                  Waiting for analysis...
+                </div>
+                <div style="font-size: 0.78rem; color: var(--text-faint); margin-top: 0.25rem;">
+                  Complete Steps 2 &amp; 3, then click Generate Analysis to get
+                  your personalised financial report.
+                </div>
+              </div>
+            </div>
+            <div id="analysis-loading" style="display: none; align-items: center; gap: 0.75rem">
+              <div class="typing-dots">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+              </div>
+              <span style="font-family: var(--mono); font-size: 0.7rem; color: var(--text-dim);"
+                data-i18n="p6.loading">AI is analysing your financial profile...</span>
+            </div>
+            <div id="analysis-content" style="display: none">
+              <div id="analysis-verdict"></div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;"
+                id="analysis-cards"></div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top: 2.5rem">
+          <div class="label" style="margin-bottom: 1rem" data-i18n="p6.askAi">
+            Ask the AI Advisor
+          </div>
+          <div class="ai-chat-wrap" style="height: auto">
+            <div class="ai-panel" style="height: 440px">
+              <div class="ai-panel-header">
+                <div class="ai-pulse"></div>
+                <span class="ai-panel-title">TrueCost AI — Chat</span>
+              </div>
+              <div class="ai-messages" id="ai-messages">
+                <div class="msg msg-ai">
+                  <div class="msg-label">TrueCost AI</div>
+                  <div class="msg-bubble">
+                    Hello. I have your full financial profile loaded. Run the
+                    analysis above first, then ask me anything about your car
+                    decision — I'll give you an honest answer.
+                  </div>
+                </div>
+              </div>
+              <div class="ai-input-row">
+                <input type="text" class="ai-input" id="ai-input" placeholder="Ask anything about your car decision..."
+                  data-i18n-placeholder="p6.ph.askAnything" onkeydown="if (event.key === 'Enter') sendAI();" />
+                <button class="ai-send-btn" id="ai-send-btn" onclick="sendAI()" data-i18n="btn.send">
+                  Send
+                </button>
+              </div>
+            </div>
+            <div class="insights-sidebar">
+              <div class="label" style="margin-bottom: 0.75rem" data-i18n="p6.quickQuestions">
+                Quick Questions
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 0.4rem">
+                <button class="btn-ghost" style="text-align: left; font-size: 0.65rem"
+                  onclick="quickQuestion('Can I actually afford this car based on my income and current expenses?')">Can
+                  I afford this car?</button>
+                <button class="btn-ghost" style="text-align: left; font-size: 0.65rem"
+                  onclick="quickQuestion('What are the biggest financial risks if I buy this car?')">What are the
+                  risks?</button>
+                <button class="btn-ghost" style="text-align: left; font-size: 0.65rem"
+                  onclick="quickQuestion('What is a safer car price range given my salary?')">What price suits
+                  me?</button>
+                <button class="btn-ghost" style="text-align: left; font-size: 0.65rem"
+                  onclick="quickQuestion('How should I adjust my monthly budget if I buy this car?')">How to adjust
+                  budget?</button>
+                <button class="btn-ghost" style="text-align: left; font-size: 0.65rem"
+                  onclick="quickQuestion('Is buying a used car a smarter financial decision for me?')">New vs used for
+                  me?</button>
+                <button class="btn-ghost" style="text-align: left; font-size: 0.65rem"
+                  onclick="quickQuestion('What would my savings look like in 5 years if I chose a cheaper car?')">5-year
+                  savings impact?</button>
+              </div>
+              <div
+                style="margin-top: 1.25rem; padding: 1rem; background: var(--surface2); border: 1px solid var(--border);">
+                <div
+                  style="font-family: var(--mono); font-size: 0.6rem; color: var(--text-faint); letter-spacing: 0.08em; margin-bottom: 0.5rem;">
+                  CONTEXT LOADED</div>
+                <div id="chat-context-summary" style="font-size: 0.75rem; color: var(--text-dim); line-height: 1.5;">
+                  Complete your financial profile in Step 2 and select a car in Step 3 to give the AI full context.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bottom-nav">
+          <button class="btn-ghost" onclick="goPage(5)" data-i18n="btn.back">
+            ← Back
+          </button>
+          <button class="btn-secondary" onclick="exportTrueCostPDF()"
+            style="border-color: var(--gold); color: var(--gold)">
+            📄 Export PDF Report
+          </button>
+          <button class="btn-secondary" onclick="goPage(1)" data-i18n="btn.startOver">
+            ↺ Start Over
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+       SCRIPTS
+    ============================================================ -->
+    <script src="./js/state.js"></script>
+    <script src="./js/fuel.js"></script>
+    <script src="./js/costs.js"></script>
+    <script src="./js/finance.js"></script>
+    <script src="./js/cars.js"></script>
+    <script src="./js/charts.js"></script>
+    <script src="./js/ai.js"></script>
+    <script src="./js/ui.js"></script>
+    <script src="./js/pdf.js"></script>
+    <script src="./js/main.js"></script>
+    <script src="./js/cinematic.js"></script>
+
+    <script>
+      const STRINGS = {
+        en: {
+          "nav.step1": "01 Overview",
+          "nav.step2": "02 Your Finances",
+          "nav.step3": "03 Car Selection",
+          "nav.step4": "04 True Cost",
+          "nav.step5": "05 Scenarios",
+          "nav.step6": "06 AI Insight",
+          "common.step": "Step",
+          "common.of": "of",
+          "btn.startRealityCheck": "Start My Reality Check →",
+          "btn.beginRealityCheck": "Begin My Financial Reality Check →",
+          "btn.calculateChooseCar": "Calculate & Choose a Car →",
+          "btn.getAiPicks": "✦ Get AI Picks",
+          "btn.findingPicks": "Finding picks...",
+          "btn.refreshPicks": "↺ Refresh Picks",
+          "btn.viewTrueCost": "View True Cost →",
+          "btn.viewScenarios": "View Scenarios →",
+          "btn.getAiInsights": "Get AI Insights →",
+          "btn.generateAnalysis": "⚡ Generate Analysis",
+          "btn.analysing": "Analysing...",
+          "btn.shareWhatsapp": "Share on WhatsApp",
+          "btn.downloadCard": "Download Card",
+          "btn.clear": "✕ Clear",
+          "btn.back": "← Back",
+          "btn.send": "Send",
+          "btn.startOver": "↺ Start Over",
+          "p1.section.hiddenCostsTitle": "Four costs that will quietly drain your account every month",
+          "p1.section.exampleTitle": "A RM75,000 car, broken down honestly",
+          "p2.title": "Financial Reality Check",
+          "p2.section.core": "01 — Core Financials",
+          "p2.label.takeHomeSalary": "Monthly Take-Home Salary",
+          "p2.label.monthlyCommitment": "Existing Loan Commitments/mo",
+          "p2.label.livingExpenses": "Monthly Living Expenses",
+          "p2.label.ptptn": "PTPTN repayment (RM/month)",
+          "p2.label.totalSavings": "Total Savings",
+          "p2.label.emergencyFund": "Emergency Fund",
+          "p2.label.age": "Age",
+          "p2.label.dependents": "Dependents",
+          "p2.label.jobStability": "Job Stability",
+          "p2.loanTerm": "Loan Term",
+          "p2.loan5": "5 yrs",
+          "p2.loan7": "7 yrs",
+          "p2.loan9": "9 yrs",
+          "p2.hint.salary": "After EPF and tax deductions",
+          "p2.opt.permanent": "Permanent",
+          "p2.opt.contract": "Contract",
+          "p2.opt.freelance": "Freelance",
+          "p2.ph.salary": "5,000",
+          "p2.ph.loans": "0",
+          "p2.ph.expenses": "2,000",
+          "p2.ph.ptptn": "0",
+          "p2.ph.savings": "10,000",
+          "p2.ph.emergency": "0",
+          "p2.ph.age": "28",
+          "p2.ph.dependents": "0",
+          "p3.title": "Select Your Car",
+          "p3.recoHint": "Complete Step 2 first, then click to get AI-suggested cars highlighted on the grid below.",
+          "p3.recoLoading": "AI is analysing your profile and matching cars...",
+          "p3.ph.search": "🔍 Search make / model...",
+          "p3.sort.default": "Sort: Default",
+          "p3.filter.allMakes": "All Makes",
+          "p3.filter.allModels": "All Models",
+          "p3.filter.allConditions": "All Conditions",
+          "p3.filter.allBodyTypes": "All Body Types",
+          "p3.filter.anyPrice": "Any Price",
+          "p3.car.selected": "✓ Selected",
+          "p3.car.selectThis": "Select This Car",
+          "p4.title": "True Cost Breakdown",
+          "p4.trueCostPrefix": "True Cost",
+          "p4.monthlyBreakdown": "Monthly Cost Breakdown",
+          "p4.cost.loanInstallment": "🏦 Loan Installment",
+          "p4.cost.fuel": "⛽ Fuel",
+          "p4.cost.insurance": "🛡️ Insurance",
+          "p4.cost.roadTax": "🧾 Road Tax",
+          "p4.cost.maintenance": "🔧 Maintenance Estimate",
+          "p4.cost.depreciation": "📉 Monthly Depreciation",
+          "p4.cost.tollsParking": "🅿️ Tolls & Parking",
+          "p4.cost.total5yr": "📊 Total 5-Year Cost",
+          "p4.howCalculatedClosed": "▸ How we calculated this",
+          "p4.howCalculatedOpen": "▾ How we calculated this",
+          "p5.title": "Wealth Gap Analysis",
+          "p5.horizon": "Horizon:",
+          "p5.h5": "5 Years",
+          "p5.h10": "10 Years",
+          "p5.usedCar.title": "Smart Choice Analysis",
+          "p5.usedCar.desc": "You chose a pre-owned vehicle — already the financially smarter path. Here is your full ownership cost picture.",
+          "p5.newAffordable.title": "You're Well Within Budget ✓",
+          "p5.newAffordable.desc": "Your monthly installment is comfortably below 25% of your income. This car is a solid, affordable choice — no alternative comparison needed.",
+          "p5.usedOver25.title": "Consider a Cheaper Alternative",
+          "p5.usedOver25.desc": "Your used car installment exceeds 25% of your income. Here's a more affordable pre-owned option that could save you money and build wealth.",
+          "p6.title": "AI Financial Advisor",
+          "p6.analysisLabel": "AI Financial Analysis",
+          "p6.waiting": "Waiting for analysis...",
+          "p6.loading": "AI is analysing your financial profile...",
+          "p6.askAi": "Ask the AI Advisor",
+          "p6.quickQuestions": "Quick Questions",
+          "p6.ph.askAnything": "Ask anything about your car decision...",
+        },
+        bm: {
+          "nav.step1": "01 Gambaran Keseluruhan",
+          "nav.step2": "02 Kewangan Anda",
+          "nav.step3": "03 Pilihan Kereta",
+          "nav.step4": "04 Kos Sebenar",
+          "nav.step5": "05 Senario",
+          "nav.step6": "06 Wawasan AI",
+          "common.step": "Langkah",
+          "common.of": "daripada",
+          "btn.startRealityCheck": "Mula Semakan Realiti →",
+          "btn.beginRealityCheck": "Mulakan Semakan Realiti Kewangan →",
+          "btn.calculateChooseCar": "Kira & Pilih Kereta →",
+          "btn.getAiPicks": "✦ Dapatkan Pilihan AI",
+          "btn.findingPicks": "Mencari pilihan...",
+          "btn.refreshPicks": "↺ Segarkan Pilihan",
+          "btn.viewTrueCost": "Lihat Kos Sebenar →",
+          "btn.viewScenarios": "Lihat Senario →",
+          "btn.getAiInsights": "Dapatkan Wawasan AI →",
+          "btn.generateAnalysis": "⚡ Jana Analisis",
+          "btn.analysing": "Sedang menganalisis...",
+          "btn.shareWhatsapp": "Kongsi di WhatsApp",
+          "btn.downloadCard": "Muat Turun Kad",
+          "btn.clear": "✕ Kosongkan",
+          "btn.back": "← Kembali",
+          "btn.send": "Hantar",
+          "btn.startOver": "↺ Mula Semula",
+          "p1.section.hiddenCostsTitle": "Empat kos yang akan mengurangkan duit anda setiap bulan",
+          "p1.section.exampleTitle": "Kereta RM75,000, dipecahkan secara jujur",
+          "p2.title": "Semakan Realiti Kewangan",
+          "p2.section.core": "01 — Kewangan Teras",
+          "p2.label.takeHomeSalary": "Gaji bersih bulanan",
+          "p2.label.monthlyCommitment": "Komitmen bulanan sedia ada",
+          "p2.label.livingExpenses": "Perbelanjaan hidup bulanan",
+          "p2.label.ptptn": "Bayaran PTPTN (RM/bulan)",
+          "p2.label.totalSavings": "Jumlah simpanan",
+          "p2.label.emergencyFund": "Dana kecemasan",
+          "p2.label.age": "Umur",
+          "p2.label.dependents": "Tanggungan",
+          "p2.label.jobStability": "Kestabilan kerja",
+          "p2.loanTerm": "Tempoh pinjaman",
+          "p2.loan5": "5 tahun",
+          "p2.loan7": "7 tahun",
+          "p2.loan9": "9 tahun",
+          "p2.hint.salary": "Selepas potongan EPF dan cukai",
+          "p2.opt.permanent": "Tetap",
+          "p2.opt.contract": "Kontrak",
+          "p2.opt.freelance": "Bebas",
+          "p2.ph.salary": "5,000",
+          "p2.ph.loans": "0",
+          "p2.ph.expenses": "2,000",
+          "p2.ph.ptptn": "0",
+          "p2.ph.savings": "10,000",
+          "p2.ph.emergency": "0",
+          "p2.ph.age": "28",
+          "p2.ph.dependents": "0",
+          "p3.title": "Pilih Kereta Anda",
+          "p3.recoHint": "Lengkapkan Langkah 2 dahulu, kemudian klik untuk melihat kereta cadangan AI pada grid di bawah.",
+          "p3.recoLoading": "AI sedang menganalisis profil anda dan memadankan kereta...",
+          "p3.ph.search": "🔍 Cari jenama / model...",
+          "p3.sort.default": "Isih: Lalai",
+          "p3.filter.allMakes": "Semua Jenama",
+          "p3.filter.allModels": "Semua Model",
+          "p3.filter.allConditions": "Semua Kondisi",
+          "p3.filter.allBodyTypes": "Semua Jenis Badan",
+          "p3.filter.anyPrice": "Sebarang Harga",
+          "p3.car.selected": "✓ Dipilih",
+          "p3.car.selectThis": "Pilih Kereta Ini",
+          "p4.title": "Pecahan Kos Sebenar",
+          "p4.trueCostPrefix": "Kos sebenar",
+          "p4.monthlyBreakdown": "Pecahan Kos Bulanan",
+          "p4.cost.loanInstallment": "🏦 Ansuran pinjaman",
+          "p4.cost.fuel": "⛽ Bahan api",
+          "p4.cost.insurance": "🛡️ Insurans",
+          "p4.cost.roadTax": "🧾 Cukai jalan",
+          "p4.cost.maintenance": "🔧 Penyelenggaraan",
+          "p4.cost.depreciation": "📉 Susut nilai bulanan",
+          "p4.cost.tollsParking": "🅿️ Tol & parkir",
+          "p4.cost.total5yr": "📊 Jumlah kos 5 tahun",
+          "p4.howCalculatedClosed": "▸ Cara kami kira ini",
+          "p4.howCalculatedOpen": "▾ Cara kami kira ini",
+          "p5.title": "Analisis Jurang Kekayaan",
+          "p5.horizon": "Tempoh:",
+          "p5.h5": "5 Tahun",
+          "p5.h10": "10 Tahun",
+          "p5.usedCar.title": "Analisis Pilihan Bijak",
+          "p5.usedCar.desc": "Anda memilih kenderaan terpakai — jalan yang lebih bijak dari segi kewangan. Ini adalah gambaran penuh kos pemilikan anda.",
+          "p5.newAffordable.title": "Anda Dalam Bajet ✓",
+          "p5.newAffordable.desc": "Ansuran bulanan anda berada di bawah 25% daripada pendapatan anda. Kereta ini adalah pilihan yang mantap dan berpatutan — tiada perbandingan alternatif diperlukan.",
+          "p5.usedOver25.title": "Pertimbangkan Alternatif Lebih Murah",
+          "p5.usedOver25.desc": "Ansuran kereta terpakai anda melebihi 25% daripada pendapatan anda. Ini adalah pilihan terpakai yang lebih berpatutan yang boleh menjimatkan wang anda.",
+          "p6.title": "Penasihat Kewangan AI",
+          "p6.analysisLabel": "Analisis Kewangan AI",
+          "p6.waiting": "Menunggu analisis...",
+          "p6.loading": "AI sedang menganalisis profil kewangan anda...",
+          "p6.askAi": "Tanya Penasihat AI",
+          "p6.quickQuestions": "Soalan Pantas",
+          "p6.ph.askAnything": "Tanya apa sahaja tentang keputusan kereta anda...",
+        },
+      };
+
+      function t(key) {
+        const lang = state && state.lang ? state.lang : "en";
+        return STRINGS[lang]?.[key] || STRINGS.en[key] || key;
+      }
+
+      function renderStrings() {
+        const lang = state && state.lang ? state.lang : "en";
+        document.documentElement.lang = lang === "bm" ? "ms" : "en";
+
+        document.querySelectorAll("[data-i18n]").forEach((el) => {
+          const key = el.getAttribute("data-i18n");
+          const value = STRINGS[lang]?.[key] || STRINGS.en[key];
+          if (value) el.textContent = value;
+        });
+
+        document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+          const key = el.getAttribute("data-i18n-placeholder");
+          const value = STRINGS[lang]?.[key] || STRINGS.en[key];
+          if (value) el.setAttribute("placeholder", value);
+        });
+
+        document.querySelectorAll(".disclosure-toggle").forEach((btn) => {
+          const panelId = btn.getAttribute("onclick")?.match(/'([^']+)'/)?.[1];
+          const panel = panelId ? document.getElementById(panelId) : null;
+          const isOpen = panel ? panel.classList.contains("open") : false;
+          btn.textContent = isOpen
+            ? t("p4.howCalculatedOpen")
+            : t("p4.howCalculatedClosed");
+        });
+      }
+
+      function toggleLang() {
+        state.lang = state.lang === "en" ? "bm" : "en";
+        renderStrings();
+      }
+
+      window.renderStrings = renderStrings;
+      window.toggleLang = toggleLang;
+      window.i18nT = t;
+
+      function toggleFormulaDisclosure(id, btn) {
+        const panel = document.getElementById(id);
+        if (!panel) return;
+        panel.classList.toggle("open");
+        if (btn) {
+          btn.textContent = panel.classList.contains("open")
+            ? t("p4.howCalculatedOpen")
+            : t("p4.howCalculatedClosed");
+        }
+      }
+
+      function updateCostFormulaDisclosures() {
+        if (!state.selectedCar || !state.trueCost) return;
+        const car = state.selectedCar;
+        const tc = state.trueCost;
+        const ld = tc.loanData || {};
+        const fuel = tc.fuelResult || {};
+        const ins = tc.insData || {};
+        const rt = tc.rtData || {};
+        const mt = tc.maintData || {};
+        const dp = tc.depData || {};
+
+        const loanInputs = document.getElementById("fd-loan-inputs");
+        if (loanInputs && ld.principal) {
+          loanInputs.textContent = `Principal: ${fmt(ld.principal)}, flat rate: ${ld.flatRatePct}%, tenure: ${ld.years}yr.`;
+        }
+        const fuelInputs = document.getElementById("fd-fuel-inputs");
+        if (fuelInputs && fuel.engine_cc) {
+          fuelInputs.textContent = `Engine: ${fuel.engine_cc}cc, eff: ${fuel.fuel_efficiency_kml}km/L, commute: ${fuel.monthly_distance_km}km/mo.`;
+        }
+        const insuranceInputs = document.getElementById("fd-insurance-inputs");
+        if (insuranceInputs && ins.sumInsured) {
+          insuranceInputs.textContent = `Sum Insured: ${fmt(ins.sumInsured)}, NCD: ${ins.ncdPct}%, age loading: ${ins.ageLoading}%.`;
+        }
+        const roadTaxInputs = document.getElementById("fd-roadtax-inputs");
+        if (roadTaxInputs && rt.engineCC) {
+          roadTaxInputs.textContent = `Engine CC: ${rt.engineCC}, JPJ annual rate: ${fmt(rt.annual)}.`;
+        }
+        const maintInputs = document.getElementById("fd-maint-inputs");
+        if (maintInputs && mt.baseCost) {
+          maintInputs.textContent = `Brand tier: ${mt.brandTierLabel} (RM${mt.baseCost}), age mult: ×${mt.ageMult}.`;
+        }
+        const deprecInputs = document.getElementById("fd-deprec-inputs");
+        if (deprecInputs && dp.annualRate) {
+          deprecInputs.textContent = `Car value: ${fmt(dp.currentValue)}, age: ${dp.carAge}yr, rate: ${dp.annualRate}%.`;
+        }
+      }
+
+      // Override calcTrueCost if finance.js is loaded
+      if (typeof calcTrueCost === "function") {
+        const originalCalcTrueCost = calcTrueCost;
+        calcTrueCost = function () {
+          originalCalcTrueCost();
+          updateCostFormulaDisclosures();
+        };
+      }
+
+      renderStrings();
+
+      // ── THEME TOGGLE ───────────────────────────────────────
+      function updateThemeIcon() {
+        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        var icon = document.getElementById('theme-icon');
+        if (icon) icon.textContent = isDark ? '\u2600\ufe0f' : '\uD83C\uDF19';
+      }
+
+      function toggleTheme() {
+        var html = document.documentElement;
+        var isDark = html.getAttribute('data-theme') === 'dark';
+        if (isDark) {
+          html.removeAttribute('data-theme');      // light mode = :root
+          localStorage.setItem('tc-theme', 'light');
+        } else {
+          html.setAttribute('data-theme', 'dark'); // dark mode
+          localStorage.setItem('tc-theme', 'dark');
+        }
+        updateThemeIcon();
+      }
+
+      // Set correct icon on load
+      updateThemeIcon();
+    </script>
+  </div>
+</body>
+
+</html>

@@ -1,0 +1,485 @@
+/* ================================================================
+   TRUECOST — CINEMATIC SCROLL SYSTEM
+   Scroll-controlled financial documentary experience
+   ================================================================ */
+
+/* ── DESIGN TOKENS ──────────────────────────────────────────── */
+:root {
+  --cin-bg: #000000;
+  --cin-white: #ffffff;
+  --cin-gray: #b0b0b0;
+  --cin-faint: #555555;
+  --cin-gold: #C5A059;
+  --cin-gold-dim: rgba(197, 160, 89, 0.4);
+  --cin-danger: #ff3b3b;
+  --cin-danger-dim: rgba(255, 59, 59, 0.3);
+  --cin-green: #4caf7d;
+  --cin-serif: 'Playfair Display', Georgia, serif;
+  --cin-sans: 'IBM Plex Sans', -apple-system, sans-serif;
+  --cin-mono: 'IBM Plex Mono', 'SF Mono', monospace;
+}
+
+[data-theme="dark"] {
+  --cin-gold: #c9a84c;
+  --cin-gold-dim: rgba(201, 168, 76, 0.4);
+}
+
+/* ── CINEMATIC STAGE — fixed fullscreen video background ───── */
+.cin-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background: #000;
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cin-stage video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform-origin: center center;
+  will-change: transform, opacity;
+  transition: none;
+}
+
+.cin-stage__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  will-change: opacity;
+  transition: none;
+}
+
+.cin-stage.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── CANVAS BACKGROUND ───────────────────────────────────────── */
+.cin-canvas-wrap {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.cin-canvas-wrap canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.cin-canvas-wrap.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── PROGRESS BAR ────────────────────────────────────────────── */
+.cin-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--cin-gold-dim), var(--cin-gold));
+  z-index: 10000;
+  transition: width 0.1s linear;
+}
+
+/* ── SCROLL CONTAINER ────────────────────────────────────────── */
+.cin-scroll {
+  position: relative;
+  z-index: 5;
+}
+
+/* ── NAV — hidden during cinematic, shown for app pages ──────── */
+.nav.cin-nav-hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-100%);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.nav.cin-nav-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+/* ── CINEMATIC SCENES ────────────────────────────────────────── */
+.cin-scene {
+  position: relative;
+  z-index: 10;
+  min-height: 85vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  border: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+}
+
+.cin-scene--hero {
+  min-height: 100vh;
+  position: relative;
+}
+
+.cin-scene--cta {
+  align-items: flex-start;
+  padding-top: 15vh;
+}
+
+.cin-scene__content {
+  text-align: center;
+  max-width: 1000px;
+  width: 100%;
+}
+
+/* ── CINEMATIC TYPOGRAPHY ────────────────────────────────────── */
+.cin-text {
+  font-family: var(--cin-serif);
+  font-size: clamp(1.8rem, 5vw, 3.5rem);
+  font-weight: 700;
+  color: var(--cin-white);
+  line-height: 1.3;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.cin-text--sub {
+  font-family: var(--cin-sans);
+  font-size: clamp(1rem, 2.5vw, 1.4rem);
+  font-weight: 300;
+  color: var(--cin-white);
+  opacity: 0.7;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.02em;
+}
+
+.cin-text--price {
+  font-family: var(--cin-serif);
+  font-size: clamp(3rem, 10vw, 7rem);
+  font-weight: 900;
+  font-style: italic;
+  color: var(--cin-gold);
+  margin-top: 0.25rem;
+  letter-spacing: -0.03em;
+}
+
+.cin-text--unit {
+  font-size: 0.35em;
+  font-style: normal;
+  font-weight: 300;
+  color: var(--cin-white);
+  opacity: 0.5;
+  vertical-align: baseline;
+}
+
+.cin-text--danger {
+  color: var(--cin-danger);
+}
+
+.cin-text--lg {
+  font-size: clamp(2.5rem, 8vw, 5.5rem);
+  font-weight: 900;
+  font-style: italic;
+  letter-spacing: -0.03em;
+  margin-top: 0.25rem;
+}
+
+.cin-text--shock {
+  font-family: var(--cin-serif);
+  font-size: clamp(3.5rem, 12vw, 9rem);
+  font-weight: 900;
+  font-style: italic;
+  color: var(--cin-danger);
+  margin: 0;
+  letter-spacing: -0.04em;
+  text-shadow: 0 0 80px var(--cin-danger-dim), 0 0 160px rgba(255, 59, 59, 0.15);
+}
+
+.cin-text--gold {
+  color: var(--cin-gold);
+}
+
+.cin-text--cost {
+  font-family: var(--cin-sans);
+  font-size: clamp(1.2rem, 3vw, 2rem);
+  font-weight: 400;
+  color: var(--cin-white);
+  opacity: 0.9;
+  margin: 0.75rem 0;
+  letter-spacing: 0.05em;
+}
+
+.cin-text--whisper {
+  font-family: var(--cin-mono);
+  font-size: clamp(0.7rem, 1.5vw, 0.95rem);
+  font-weight: 400;
+  color: var(--cin-white);
+  opacity: 1;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-top: 1.5rem;
+}
+
+/* ── CTA BUTTON ──────────────────────────────────────────────── */
+.cin-cta-btn {
+  display: inline-block;
+  padding: 1rem 3rem;
+  background: var(--cin-gold);
+  color: #000;
+  font-family: var(--cin-sans);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cin-cta-btn:hover {
+  background: var(--cin-white);
+  color: #000;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(201, 168, 76, 0.3);
+}
+
+.cin-cta-note {
+  display: block;
+  margin-top: 1rem;
+  font-family: var(--cin-mono);
+  font-size: 0.65rem;
+  color: var(--cin-white);
+  opacity: 0.4;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+/* ── REVEAL ANIMATIONS ───────────────────────────────────────── */
+.cin-reveal {
+  opacity: 0;
+  transition: opacity 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              transform 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: opacity, transform;
+}
+
+.cin-reveal--up {
+  transform: translateY(50px);
+}
+
+.cin-reveal--left {
+  transform: translateX(-60px);
+}
+
+.cin-reveal--number {
+  transform: scale(0.85);
+}
+
+/* Stagger delays */
+.cin-reveal[data-delay="1"] { transition-delay: 0.15s; }
+.cin-reveal[data-delay="2"] { transition-delay: 0.35s; }
+.cin-reveal[data-delay="3"] { transition-delay: 0.55s; }
+.cin-reveal[data-delay="4"] { transition-delay: 0.75s; }
+
+/* Active state */
+.cin-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0) translateX(0) scale(1);
+}
+
+/* Impact effect */
+.cin-reveal--impact.is-visible {
+  animation: cin-impact 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+}
+
+@keyframes cin-impact {
+  0% { transform: scale(0.5); opacity: 0; }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ── FIXED BRAND MARK — gold TrueCost, stays top during cinematic ── */
+.cin-brand-fixed {
+  position: fixed;
+  top: 1.1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9998;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.5s ease;
+  white-space: nowrap;
+}
+
+.cin-brand-fixed.is-hidden {
+  opacity: 0;
+}
+
+.cin-brand-name {
+  font-family: var(--cin-serif);
+  font-size: clamp(2.5rem, 5vw, 3.75rem);
+  font-weight: 700;
+  color: var(--cin-gold);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  text-align: center;
+}
+
+.cin-brand-sub {
+  font-family: var(--cin-mono);
+  font-size: clamp(0.45rem, 0.9vw, 0.6rem);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--cin-white);
+  text-align: center;
+  opacity: 0.8;
+}
+
+/* ── HEADER MASK — fades out scrolling text before brand area ── */
+.cin-header-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 20vh;
+  background: linear-gradient(to bottom, var(--cin-bg) 50%, transparent 100%);
+  z-index: 9995;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.5s ease;
+}
+
+.cin-header-mask.is-hidden {
+  opacity: 0;
+}
+
+/* ── SCROLL HINT ───────────────────────────────────────────── */
+.cin-scroll-hint {
+  position: absolute;
+  bottom: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  pointer-events: none;
+  animation: cin-scroll-pulse 2.8s ease-in-out infinite;
+}
+
+.cin-scroll-hint__text {
+  font-family: var(--cin-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--cin-white);
+  white-space: nowrap;
+  opacity: 0.6;
+}
+
+.cin-scroll-hint__line {
+  width: 1px;
+  height: 28px;
+  background: linear-gradient(to bottom, rgba(201, 168, 76, 0.4), transparent);
+}
+
+@keyframes cin-scroll-pulse {
+  0%, 100% { opacity: 0.45; transform: translateX(-50%) translateY(0px); }
+  50%       { opacity: 1;    transform: translateX(-50%) translateY(8px);  }
+}
+
+/* ── COUNTER ─────────────────────────────────────────────────── */
+.cin-counter {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 9999;
+  text-align: right;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  pointer-events: none;
+}
+
+.cin-counter.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.cin-counter__label {
+  font-family: var(--cin-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  color: var(--cin-faint);
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+
+.cin-counter__value {
+  font-family: var(--cin-serif);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--cin-gold);
+  transition: color 0.4s ease;
+}
+
+.cin-counter__value.is-danger {
+  color: var(--cin-danger);
+}
+
+/* ── RESPONSIVE ──────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .cin-scene {
+    padding: 1.5rem;
+  }
+
+  .cin-text--shock {
+    font-size: clamp(2.5rem, 14vw, 5rem);
+  }
+
+  .cin-text--price {
+    font-size: clamp(2.5rem, 12vw, 4.5rem);
+  }
+
+  .cin-counter {
+    bottom: 1rem;
+    right: 1rem;
+  }
+
+  .cin-counter__value {
+    font-size: 1.2rem;
+  }
+
+  .cin-cta-btn {
+    padding: 0.9rem 2rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* ── SECTION BASE (for app pages 2-6) ────────────────────────── */
+.cin-section {
+  position: relative;
+  padding: 6rem 0;
+  min-height: 60vh;
+  overflow: hidden;
+}
+
+/* ── FIX: strip borders from scene utility classes ───────────── */
+.cin-scene.hidden-costs,
+.cin-scene.example-section {
+  border: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  padding: 0 !important;
+}

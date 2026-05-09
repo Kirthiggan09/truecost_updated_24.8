@@ -1,0 +1,30 @@
+{
+  "name": "truecost",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Car affordability reality check tool",
+  "main": "api/chat.js",
+  "scripts": {
+    "build": "echo 'Static project: no build step required.'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Risikesan26/Borneo_2.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Risikesan26/Borneo_2/issues"
+  },
+  "homepage": "https://github.com/Risikesan26/Borneo_2#readme",
+  "devDependencies": {
+    "express": "^5.2.1",
+    "vercel": "^52.0.0"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.104.1",
+    "csv-parser": "^3.2.0",
+    "papaparse": "^5.5.3"
+  }
+}
