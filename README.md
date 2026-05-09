@@ -249,9 +249,7 @@ TrueCost/
 ├── package.json
 └── .env
 ```
-# 🏗️ System Architecture
 
-![TrueCost Architecture](NotebookLM Mind Map.png)
 ---
 
 # 🧠 AI Implementation
