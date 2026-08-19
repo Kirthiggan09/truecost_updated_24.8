@@ -10,6 +10,13 @@ const trAI = (key, fallback) => {
   return fallback;
 };
 
+function parseJSONFromAI(raw) {
+  const jsonMatch = String(raw || '').match(/\{[\s\S]*\}/);
+  const jsonStr = jsonMatch ? jsonMatch[0] : String(raw || '').replace(/```json|```/g, '').trim();
+  return JSON.parse(jsonStr);
+}
+
+
 async function callAI(messages, maxTokens = 1000) {
   const response = await fetch('/api/chat', {
     method: 'POST',
@@ -180,8 +187,17 @@ Respond ONLY with this exact JSON structure (no markdown):
 }`;
 
   try {
-    const raw = await callAI([{ role: 'user', content: prompt }], 600);
-    const parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
+    let parsed;
+    try {
+      const raw = await callAI([{ role: 'user', content: prompt }], 600);
+      parsed = parseJSONFromAI(raw);
+    } catch (aiErr) {
+      console.warn('AI recommendation call failed, falling back to algorithmic budget matching:', aiErr);
+      parsed = {
+        new_cars: newCars.slice(0, 3).map(c => ({ id: c.id, reason: 'Matches your salary range & estimated monthly budget.' })),
+        used_or_recon_cars: usedCars.slice(0, 3).map(c => ({ id: c.id, reason: 'Value pre-owned pick with low ownership costs.' }))
+      };
+    }
 
     const recs = [...(parsed.new_cars || []), ...(parsed.used_or_recon_cars || [])];
     state.aiRecoIds = recs.map(r => Number(r.id));
@@ -218,7 +234,7 @@ Respond ONLY with this exact JSON structure (no markdown):
     resultsContainer.style.display = 'block';
 
     const topCar = CAR_DATASET.find(c => c.id === state.aiRecoIds[0]);
-    bannerText.innerHTML = `✦ AI found <strong style="color:var(--green)">${recs.length} recommended cars</strong>.${topCar ? ` Top pick: <strong>${topCar.make} ${topCar.model}</strong>.` : ''} Select one below or in the grid.`;
+    bannerText.innerHTML = `✦ Found <strong style="color:var(--green)">${recs.length} recommended cars</strong>.${topCar ? ` Top pick: <strong>${topCar.make} ${topCar.model}</strong>.` : ''} Select one below or in the grid.`;
     btn.textContent = trAI('btn.refreshPicks', '↺ Refresh Picks');
   } catch (err) {
     const resultsContainer = document.getElementById('ai-recommendation-results');
@@ -248,7 +264,7 @@ async function runFullAnalysis() {
   const prompt = `${buildSystemPrompt()}\n\nAnalyse this car purchase and respond ONLY with a JSON object (no markdown):\n{"verdict":"COMFORTABLE"|"MANAGEABLE"|"STRETCH","affordability":"1 short precise sentence","risks":"1 short precise sentence","safer_alternative":"1 short precise sentence","long_term":"1 short precise sentence","summary":"2-3 short sentences for a quick verdict"}`;
   try {
     const raw = await callAI([{ role: 'user', content: prompt }], 1000);
-    const parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
+    const parsed = parseJSONFromAI(raw);
     const verdict = normalizeVerdict(parsed.verdict);
     const vc = verdict === 'COMFORTABLE' ? 'var(--green)' : verdict === 'MANAGEABLE' ? 'var(--amber)' : 'var(--red)';
     const vb = verdict === 'COMFORTABLE' ? 'badge-safe' : verdict === 'MANAGEABLE' ? 'badge-risky' : 'badge-danger';

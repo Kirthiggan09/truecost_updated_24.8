@@ -1,3 +1,12 @@
+const FALLBACK_MODELS = [
+  'llama-3.3-70b-versatile',
+  'llama-3.1-8b-instant',
+  'llama-3.1-70b-versatile',
+  'llama3-70b-8192',
+  'llama3-8b-8192',
+  'mixtral-8x7b-32768'
+];
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -30,30 +39,58 @@ Rules:
 - National cars (Perodua, Proton) and Japanese econoboxes use RON95.
 - If uncertain, use conservative estimates typical for the Malaysian market.`;
 
-  try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: process.env.GROQ_MODEL,
-        max_tokens: 200,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
+  const requestedModel = process.env.GROQ_MODEL || req.body?.model;
+  const modelsToTry = [
+    requestedModel,
+    ...FALLBACK_MODELS
+  ].filter((m, idx, self) => Boolean(m) && self.indexOf(m) === idx);
 
-    const data = await response.json();
-    if (!response.ok) {
-      return res.status(response.status).json(data);
+  let lastData = null;
+  let lastStatus = 500;
+
+  for (const model of modelsToTry) {
+    try {
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model,
+          max_tokens: 200,
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+
+      const data = await response.json();
+      lastStatus = response.status;
+      lastData = data;
+
+      if (response.ok) {
+        const raw = data.choices?.[0]?.message?.content || '';
+        const jsonMatch = raw.match(/\{[\s\S]*\}/);
+        const parsedStr = jsonMatch ? jsonMatch[0] : raw.replace(/```json|```/g, '').trim();
+        const parsed = JSON.parse(parsedStr);
+        return res.status(200).json(parsed);
+      }
+
+      const errMsg = (data?.error?.message || '').toLowerCase();
+      const errType = (data?.error?.type || '').toLowerCase();
+      const isModelError = response.status === 404 ||
+        errMsg.includes('model') ||
+        errMsg.includes('does not exist') ||
+        errMsg.includes('do not have access') ||
+        errType.includes('invalid_model');
+
+      if (!isModelError) {
+        return res.status(response.status).json(data);
+      }
+    } catch (err) {
+      lastData = { error: { message: err.message } };
     }
-
-    const raw = data.choices?.[0]?.message?.content || '';
-    const parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
-
-    return res.status(200).json(parsed);
-  } catch (err) {
-    return res.status(500).json({ error: { message: err.message } });
   }
+
+  return res.status(lastStatus).json(lastData);
 }
+
