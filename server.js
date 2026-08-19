@@ -88,7 +88,15 @@ async function callGroqCompletions(payload) {
     }
   }
 
-  return { ok: false, status: lastStatus, data: lastData };
+  return {
+    ok: false,
+    status: lastStatus,
+    data: {
+      error: {
+        message: `Groq API Error: Unable to access AI models. Please verify your GROQ_API_KEY in environment variables is valid (get a key at https://console.groq.com/keys). Details: ${lastData?.error?.message || 'Access denied'}`
+      }
+    }
+  };
 }
 
 // /api/chat — proxy to Groq

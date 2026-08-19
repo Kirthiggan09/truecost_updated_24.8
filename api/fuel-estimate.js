@@ -91,6 +91,10 @@ Rules:
     }
   }
 
-  return res.status(lastStatus).json(lastData);
+  return res.status(lastStatus).json({
+    error: {
+      message: `Groq API Error: Unable to access AI models. Please verify your GROQ_API_KEY in Vercel Environment Variables is valid (get a key at https://console.groq.com/keys). Details: ${lastData?.error?.message || 'Access denied'}`
+    }
+  });
 }
 
