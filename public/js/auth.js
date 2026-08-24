@@ -1,24 +1,35 @@
 // Supabase setup
-let supabase = null;
+let sbClient = null;
 
 async function initSupabase() {
-  if (supabase) return supabase;
+  if (sbClient) return sbClient;
   try {
     const res = await fetch('/api/config');
     const config = await res.json();
     if (config.SUPABASE_URL && config.SUPABASE_ANON_KEY) {
-      supabase = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
+      sbClient = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
     }
   } catch (err) {
     console.error('Failed to init Supabase client', err);
   }
-  return supabase;
+  return sbClient;
 }
 
 // Dealer login
 async function loginDealer(email, password) {
   const sb = await initSupabase();
-  if (!sb) return { error: 'Supabase not configured' };
+  
+  // If Supabase is missing, use DEMO MODE
+  if (!sb) {
+    console.warn("DEMO MODE: Bypassing Supabase Auth");
+    state.mode = 'dealer';
+    state.session = { access_token: 'demo' };
+    state.user = { id: 'demo-dealer', email: email || 'demo@dealer.com' };
+    state.dealership_id = 'demo-dealership'; // mock id
+    
+    await loadDealerDashboard();
+    return { success: true };
+  }
   
   const { data, error } = await sb.auth.signInWithPassword({ email, password });
   if (error) return { error: error.message };

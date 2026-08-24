@@ -87,14 +87,45 @@ function switchDealerTab(tabId) {
 }
 
 async function refreshDealerData() {
-  if(!supabase || !state.user) return;
+  if(!state.user) return;
   document.getElementById('d-prof-email').textContent = state.user.email;
   
-  const { data: member } = await supabase.from('dealer_members').select('dealership_id').eq('user_id', state.user.id).single();
-  if(!member) return;
+  let ds = { credit_balance: 100 };
+  let assessments = [
+    { id: '1', customer_reference: 'Cust-XYZ123', selected_car: { make: 'Toyota', model: 'Camry' }, sales_status: 'New', created_at: new Date().toISOString() }
+  ];
+  let inventory = [
+    { id: 'inv1', car_name: 'Honda Civic 1.5TC', stock_reference: 'STK-001', status: 'available', selling_price: 135000 }
+  ];
+  let enquiries = [
+    { id: 'enq1', action_type: 'Book Test Drive', dealer_inventory: { car_name: 'Honda Civic 1.5TC' }, status: 'Pending', contact_name: 'Ahmad', contact_details: '0123456789' }
+  ];
+  let proposals = [
+    { proposal_reference: 'PROP-999', assessments: { customer_reference: 'Cust-XYZ123', selected_car: { make: 'Toyota', model: 'Camry' } } }
+  ];
+
+  // Try to fetch real data if we have an initialized client
+  if(window.sbClient && state.session.access_token !== 'demo') {
+    const { data: member } = await window.sbClient.from('dealer_members').select('dealership_id').eq('user_id', state.user.id).single();
+    if(!member) return;
+    
+    state.dealership_id = member.dealership_id;
+    const { data: realDs } = await window.sbClient.from('dealerships').select('*').eq('id', member.dealership_id).single();
+    if(realDs) ds = realDs;
+    
+    const { data: realAss } = await window.sbClient.from('assessments').select('*').eq('dealership_id', member.dealership_id).order('created_at', { ascending: false });
+    if(realAss) assessments = realAss;
+
+    const { data: realInv } = await window.sbClient.from('dealer_inventory').select('*').eq('dealership_id', member.dealership_id);
+    if(realInv) inventory = realInv;
+
+    const { data: realEnq } = await window.sbClient.from('enquiries').select('*, dealer_inventory(car_name)').eq('dealership_id', member.dealership_id).order('created_at', { ascending: false });
+    if(realEnq) enquiries = realEnq;
+
+    const { data: realProp } = await window.sbClient.from('proposals').select('*, assessments(customer_reference, selected_car)').order('created_at', { ascending: false });
+    if(realProp) proposals = realProp;
+  }
   
-  state.dealership_id = member.dealership_id;
-  const { data: ds } = await supabase.from('dealerships').select('*').eq('id', member.dealership_id).single();
   if(ds) {
     document.getElementById('d-cred-count').textContent = ds.credit_balance;
     document.getElementById('d-cred-display').textContent = ds.credit_balance;
@@ -109,7 +140,6 @@ async function refreshDealerData() {
   `;
   
   // 2. Assessments
-  const { data: assessments } = await supabase.from('assessments').select('*').eq('dealership_id', member.dealership_id).order('created_at', { ascending: false });
   const assList = document.getElementById('d-assessments-list');
   if (assessments && assessments.length) {
     assList.innerHTML = assessments.map(a => `
@@ -126,7 +156,6 @@ async function refreshDealerData() {
   }
   
   // 3. Inventory
-  const { data: inventory } = await supabase.from('dealer_inventory').select('*').eq('dealership_id', member.dealership_id);
   const invList = document.getElementById('d-inventory-list');
   if (inventory && inventory.length) {
     invList.innerHTML = inventory.map(i => `
@@ -142,7 +171,6 @@ async function refreshDealerData() {
   }
   
   // 4. Enquiries
-  const { data: enquiries } = await supabase.from('enquiries').select('*, dealer_inventory(car_name)').eq('dealership_id', member.dealership_id).order('created_at', { ascending: false });
   const enqList = document.getElementById('d-enquiries-list');
   if (enquiries && enquiries.length) {
     enqList.innerHTML = enquiries.map(e => {
@@ -152,7 +180,7 @@ async function refreshDealerData() {
       return `
       <div style="border:1px solid var(--border); padding:1rem; border-radius:4px; margin-bottom:0.5rem;">
         <div style="display:flex; justify-content:space-between;">
-          <strong>${e.action_type} - ${e.dealer_inventory?.car_name}</strong>
+          <strong>${e.action_type} - ${e.dealer_inventory?.car_name || e.dealer_inventory}</strong>
           <span style="font-size:0.8rem; padding:0.2rem 0.5rem; background: ${isAccepted ? 'var(--green)' : 'var(--gold)'}; color:var(--bg); border-radius:12px;">${e.status}</span>
         </div>
         <div style="margin-top:0.5rem; font-size:0.9rem; color:var(--text-dim);">
@@ -171,7 +199,6 @@ async function refreshDealerData() {
   }
   
   // 5. Proposals
-  const { data: proposals } = await supabase.from('proposals').select('*, assessments(customer_reference, selected_car)').order('created_at', { ascending: false });
   const propList = document.getElementById('d-proposals-list');
   if (proposals && proposals.length) {
     propList.innerHTML = proposals.map(p => `
@@ -188,7 +215,12 @@ async function refreshDealerData() {
 async function acceptEnquiry(enquiryId, cost) {
   if(!confirm(`This will deduct ${cost} credit(s). Proceed?`)) return;
   
-  const { data: success, error: credErr } = await supabase.rpc('deduct_credits', {
+  if (!window.sbClient || state.session.access_token === 'demo') {
+    alert(`DEMO MODE: Deducted ${cost} credits and accepted enquiry.`);
+    return;
+  }
+  
+  const { data: success, error: credErr } = await window.sbClient.rpc('deduct_credits', {
     p_dealership_id: state.dealership_id,
     p_amount: cost,
     p_transaction_type: 'Accept Enquiry',
@@ -200,7 +232,7 @@ async function acceptEnquiry(enquiryId, cost) {
     return;
   }
   
-  await supabase.from('enquiries').update({ status: 'Accepted' }).eq('id', enquiryId);
+  await window.sbClient.from('enquiries').update({ status: 'Accepted' }).eq('id', enquiryId);
   refreshDealerData();
 }
 
