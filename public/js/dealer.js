@@ -223,10 +223,10 @@ function startDealerAssessment() {
     dcb.style = "background: var(--surface); border-bottom: 1px solid var(--gold); padding: 0.5rem 1rem; position: fixed; top: 0; left: 0; right: 0; z-index: 9999; display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--gold);";
     document.body.appendChild(dcb);
   }
-  dcb.innerHTML = \`
+  dcb.innerHTML = `
     <span>Dealer Mode: New Customer Assessment</span>
     <button class="btn-ghost" style="padding: 0 0.5rem; font-size: 0.7rem;" onclick="cancelDealerAssessment()">Cancel</button>
-  \`;
+  `;
   dcb.style.display = 'flex';
   
   // Adjust UI text for dealer
