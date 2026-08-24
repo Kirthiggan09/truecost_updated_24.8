@@ -175,7 +175,10 @@
             <button class="cin-cta-btn" onclick="goPage(2)" data-i18n="btn.startRealityCheck">
               Start My Reality Check →
             </button>
-            <span class="cin-cta-note">Free · 3 minutes · No signup</span>
+            <div style="display:flex; flex-direction:column; align-items:center; gap:0.5rem; margin-top:0.5rem;">
+              <span class="cin-cta-note">Free · 3 minutes · No signup</span>
+              <button class="btn-ghost" style="font-size: 0.7rem; color: var(--text-dim);" onclick="showDealerLogin()">Dealer Sign In</button>
+            </div>
           </div>
         </div>
       </section>
@@ -1346,9 +1349,10 @@
       </div>
     </div>
 
-    <!-- ============================================================
-       SCRIPTS
-    ============================================================ -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./js/auth.js"></script>
+    <script src="./js/dealer.js"></script>
+    <script src="./js/enquiries.js"></script>
     <script src="./js/state.js"></script>
     <script src="./js/fuel.js"></script>
     <script src="./js/costs.js"></script>

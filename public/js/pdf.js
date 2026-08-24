@@ -5,6 +5,49 @@ async function exportTrueCostPDF() {
     return;
   }
 
+  // --- Dealer Mode: Generate Proposal ---
+  let proposalRef = '';
+  if (state.mode === 'dealer' && window.supabase && state.dealership_id) {
+    // Save assessment if not saved
+    if (!state.assessment_id) {
+      const { data: ass, error: e1 } = await supabase.from('assessments').insert({
+        type: 'dealer',
+        created_by: state.user.id,
+        dealership_id: state.dealership_id,
+        customer_reference: 'Cust-' + Date.now().toString(36),
+        safe_price_range: { max: state.budget },
+        selected_car: state.selectedCar,
+        sales_status: 'New'
+      }).select().single();
+      if (ass) state.assessment_id = ass.id;
+    }
+    
+    // Deduct 1 credit
+    if (state.assessment_id) {
+      const { data: success, error: credErr } = await supabase.rpc('deduct_credits', {
+        p_dealership_id: state.dealership_id,
+        p_amount: 1,
+        p_transaction_type: 'Generate Proposal',
+        p_reference_id: state.assessment_id
+      });
+      
+      if (!success || credErr) {
+        alert('Insufficient credits to generate proposal.');
+        return;
+      }
+      
+      // Save proposal record
+      proposalRef = 'PROP-' + Date.now().toString(36).toUpperCase();
+      await supabase.from('proposals').insert({
+        assessment_id: state.assessment_id,
+        proposal_reference: proposalRef
+      });
+      
+      // Update UI credits
+      refreshDealerData();
+    }
+  }
+
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
@@ -98,8 +141,9 @@ async function exportTrueCostPDF() {
   doc.setFillColor(...GOLD);
   doc.rect(0, 36, W, 1.2, 'F');
 
+  const mainTitle = state.mode === 'dealer' ? 'VEHICLE PROPOSAL' : 'TRUE COST ANALYSIS';
   setFont('bold', 19, GOLD);
-  doc.text('TRUE COST ANALYSIS', M, 16);
+  doc.text(mainTitle, M, 16);
 
   setFont('normal', 8, WHITE);
   doc.text('Automotive Financial Assessment Report', M, 23);
@@ -131,7 +175,12 @@ async function exportTrueCostPDF() {
     ['Condition', car.condition || 'Used'],
     ['Loan Term', `${state.loanTermYears || 9} Years`],
   ];
-  const profileRight = [
+  const profileRight = state.mode === 'dealer' ? [
+    ['Reference', proposalRef || 'N/A'],
+    ['Dealership', 'Dealer Mode'],
+    ['Salesperson', state.user?.email || 'Sales'],
+    ['Downpayment', fmt(car.downpayment || car.price * 0.1)],
+  ] : [
     ['Gross Salary', fmt(salary)],
     ['Existing Loans', fmt(existingLoans)],
     ['Living Expenses', fmt(expenses)],
@@ -262,45 +311,47 @@ async function exportTrueCostPDF() {
   y += rowH + 6;
 
   // ── Salary Allocation Bars ────────────────────────────────
-  y = drawSectionHeader('Salary Allocation Analysis', y);
+  if (state.mode !== 'dealer') {
+    y = drawSectionHeader('Salary Allocation Analysis', y);
 
-  const barData = [
-    { label: 'Existing Loans',     val: existingLoans,          color: CHARCOAL, bg: BG_ALT },
-    { label: 'Living Expenses',    val: expenses,               color: GRAY,     bg: BG_ALT },
-    { label: 'New Car Commitment', val: tc.total,               color: GOLD,     bg: GOLD_LIGHT },
-    { label: 'Net Remaining',      val: Math.max(0, remaining), color: remaining >= 0 ? SUCCESS : DANGER, bg: remaining >= 0 ? SUCCESS_BG : DANGER_BG },
-  ];
+    const barData = [
+      { label: 'Existing Loans',     val: existingLoans,          color: CHARCOAL, bg: BG_ALT },
+      { label: 'Living Expenses',    val: expenses,               color: GRAY,     bg: BG_ALT },
+      { label: 'New Car Commitment', val: tc.total,               color: GOLD,     bg: GOLD_LIGHT },
+      { label: 'Net Remaining',      val: Math.max(0, remaining), color: remaining >= 0 ? SUCCESS : DANGER, bg: remaining >= 0 ? SUCCESS_BG : DANGER_BG },
+    ];
 
-  const BAR_LABEL_W = 42;
-  const BAR_VAL_W   = 28;
-  const BAR_START   = M + BAR_LABEL_W;
-  const BAR_END     = W - M - BAR_VAL_W;
-  const BAR_W       = BAR_END - BAR_START;
-  const BAR_H       = 5.5;
-  const BAR_GAP     = 9;
-  const maxVal      = Math.max(salary, 1);
+    const BAR_LABEL_W = 42;
+    const BAR_VAL_W   = 28;
+    const BAR_START   = M + BAR_LABEL_W;
+    const BAR_END     = W - M - BAR_VAL_W;
+    const BAR_W       = BAR_END - BAR_START;
+    const BAR_H       = 5.5;
+    const BAR_GAP     = 9;
+    const maxVal      = Math.max(salary, 1);
 
-  barData.forEach((item, i) => {
-    const rowY = y + i * BAR_GAP;
-    setFont('normal', 7.5, CHARCOAL);
-    doc.text(item.label, M, rowY + 4);
-    drawHBar(BAR_START, rowY, BAR_W, BAR_H, item.val / maxVal, item.color, item.bg);
-    setFont('bold', 7.5, item.color);
-    doc.text(fmt(item.val), W - M, rowY + 4, { align: 'right' });
-  });
+    barData.forEach((item, i) => {
+      const rowY = y + i * BAR_GAP;
+      setFont('normal', 7.5, CHARCOAL);
+      doc.text(item.label, M, rowY + 4);
+      drawHBar(BAR_START, rowY, BAR_W, BAR_H, item.val / maxVal, item.color, item.bg);
+      setFont('bold', 7.5, item.color);
+      doc.text(fmt(item.val), W - M, rowY + 4, { align: 'right' });
+    });
 
-  y += barData.length * BAR_GAP + 2;
+    y += barData.length * BAR_GAP + 2;
 
-  if (salary > 0) {
-    const salX = BAR_START + BAR_W;
-    doc.setDrawColor(...CHARCOAL);
-    doc.setLineWidth(0.3);
-    doc.setLineDashPattern([2, 1], 0);
-    doc.line(salX, y - barData.length * BAR_GAP - 3, salX, y);
-    doc.setLineDashPattern([], 0);
-    setFont('bold', 6, CHARCOAL);
-    doc.text('GROSS SALARY', salX, y + 2, { align: 'center' });
-    y += 6;
+    if (salary > 0) {
+      const salX = BAR_START + BAR_W;
+      doc.setDrawColor(...CHARCOAL);
+      doc.setLineWidth(0.3);
+      doc.setLineDashPattern([2, 1], 0);
+      doc.line(salX, y - barData.length * BAR_GAP - 3, salX, y);
+      doc.setLineDashPattern([], 0);
+      setFont('bold', 6, CHARCOAL);
+      doc.text('GROSS SALARY', salX, y + 2, { align: 'center' });
+      y += 6;
+    }
   }
 
 
@@ -332,7 +383,7 @@ async function exportTrueCostPDF() {
   doc.setFillColor(...GOLD);
   doc.rect(0, 36, W, 1.2, 'F');
   setFont('bold', 19, GOLD);
-  doc.text('TRUE COST ANALYSIS', M, 16);
+  doc.text(mainTitle, M, 16);
   setFont('normal', 8, WHITE);
   doc.text('Long-Term Projections & Wealth Impact', M, 23);
   setFont('normal', 6.5, GRAY);

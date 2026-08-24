@@ -39,7 +39,10 @@ function goPage(n, source = 'nav') {
     else if (i < currentIdx) s.classList.add('done');
   });
 
-  if (n === 4) calcTrueCost();
+  if (n === 4) {
+    calcTrueCost();
+    if(typeof renderDealerActions === 'function') renderDealerActions();
+  }
   if (n === 5) {
     calcTrueCost();
     if (!state.selectedCar || !state.trueCost) {

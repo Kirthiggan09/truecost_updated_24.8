@@ -166,6 +166,13 @@ app.get('/api/cars', async (req, res) => {
   }
 });
 
+app.get('/api/config', (req, res) => {
+  res.json({
+    SUPABASE_URL: process.env.SUPABASE_URL || '',
+    SUPABASE_ANON_KEY: process.env.PUBLIC_SUPABASE_ANON_KEY || ''
+  });
+});
+
 // Fallback: serve index.html for SPA-style routing
 app.get(/.*/, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -174,4 +181,3 @@ app.get(/.*/, (req, res) => {
 app.listen(PORT, () => {
   console.log(`✅ TrueCost server running at http://localhost:${PORT}`);
 });
-
