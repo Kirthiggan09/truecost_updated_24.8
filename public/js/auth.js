@@ -122,3 +122,5 @@ async function handleDealerLoginSubmit() {
 window.showDealerLogin = showDealerLogin;
 window.hideDealerLogin = hideDealerLogin;
 window.handleDealerLoginSubmit = handleDealerLoginSubmit;
+
+alert('auth.js is loaded and executing!');
