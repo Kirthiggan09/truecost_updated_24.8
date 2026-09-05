@@ -19,8 +19,8 @@ async function initSupabase() {
 async function loginDealer(email, password) {
   const sb = await initSupabase();
   
-  // If Supabase is missing, use DEMO MODE
-  if (!sb) {
+  // If Supabase is missing OR using demo credentials, use DEMO MODE
+  if (!sb || email === 'demo@dealer.com') {
     console.warn("DEMO MODE: Bypassing Supabase Auth");
     state.mode = 'dealer';
     state.session = { access_token: 'demo' };
@@ -85,8 +85,9 @@ function showDealerLogin() {
     modal.innerHTML = `
       <div style="background:var(--surface); padding:2rem; border-radius:8px; border:1px solid var(--gold); width:90%; max-width:400px; text-align:center;">
         <h2 style="font-family:var(--playfair); color:var(--gold); margin-bottom:1rem;">Dealer Sign In</h2>
-        <input type="email" id="dl-email" class="form-input" placeholder="Email" style="margin-bottom:1rem; width:100%;" />
-        <input type="password" id="dl-pass" class="form-input" placeholder="Password" style="margin-bottom:1rem; width:100%;" />
+        <input type="email" id="dl-email" class="form-input" placeholder="Email" style="margin-bottom:1rem; width:100%;" value="demo@dealer.com" />
+        <input type="password" id="dl-pass" class="form-input" placeholder="Password" style="margin-bottom:1rem; width:100%;" value="demo" />
+        <div style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 1rem;">Use <strong>demo@dealer.com</strong> to try the portal offline.</div>
         <div id="dl-error" style="color:var(--danger); font-size:0.8rem; margin-bottom:1rem; display:none;"></div>
         <button class="btn-primary" style="width:100%; margin-bottom:1rem;" onclick="handleDealerLoginSubmit()">Sign In</button>
         <button class="btn-ghost" style="width:100%;" onclick="hideDealerLogin()">Cancel</button>

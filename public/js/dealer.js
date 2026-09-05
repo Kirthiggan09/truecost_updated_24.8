@@ -90,19 +90,28 @@ async function refreshDealerData() {
   if(!state.user) return;
   document.getElementById('d-prof-email').textContent = state.user.email;
   
-  let ds = { credit_balance: 100 };
-  let assessments = [
+  let ds = JSON.parse(localStorage.getItem('dealer_ds')) || { credit_balance: 100 };
+  let assessments = JSON.parse(localStorage.getItem('dealer_assessments')) || [
     { id: '1', customer_reference: 'Cust-XYZ123', selected_car: { make: 'Toyota', model: 'Camry' }, sales_status: 'New', created_at: new Date().toISOString() }
   ];
-  let inventory = [
+  let inventory = JSON.parse(localStorage.getItem('dealer_inventory')) || [
     { id: 'inv1', car_name: 'Honda Civic 1.5TC', stock_reference: 'STK-001', status: 'available', selling_price: 135000 }
   ];
-  let enquiries = [
+  let enquiries = JSON.parse(localStorage.getItem('dealer_enquiries')) || [
     { id: 'enq1', action_type: 'Book Test Drive', dealer_inventory: { car_name: 'Honda Civic 1.5TC' }, status: 'Pending', contact_name: 'Ahmad', contact_details: '0123456789' }
   ];
-  let proposals = [
+  let proposals = JSON.parse(localStorage.getItem('dealer_proposals')) || [
     { proposal_reference: 'PROP-999', assessments: { customer_reference: 'Cust-XYZ123', selected_car: { make: 'Toyota', model: 'Camry' } } }
   ];
+  
+  // Persist the default mock data if not set
+  if(!localStorage.getItem('dealer_ds')) {
+    localStorage.setItem('dealer_ds', JSON.stringify(ds));
+    localStorage.setItem('dealer_assessments', JSON.stringify(assessments));
+    localStorage.setItem('dealer_inventory', JSON.stringify(inventory));
+    localStorage.setItem('dealer_enquiries', JSON.stringify(enquiries));
+    localStorage.setItem('dealer_proposals', JSON.stringify(proposals));
+  }
 
   // Try to fetch real data if we have an initialized client
   if(window.sbClient && state.session.access_token !== 'demo') {
@@ -216,7 +225,20 @@ async function acceptEnquiry(enquiryId, cost) {
   if(!confirm(`This will deduct ${cost} credit(s). Proceed?`)) return;
   
   if (!window.sbClient || state.session.access_token === 'demo') {
+    let ds = JSON.parse(localStorage.getItem('dealer_ds'));
+    let enquiries = JSON.parse(localStorage.getItem('dealer_enquiries'));
+    if (ds.credit_balance < cost) {
+      alert('Insufficient credits in demo mode.');
+      return;
+    }
+    ds.credit_balance -= cost;
+    const enq = enquiries.find(e => e.id === enquiryId);
+    if (enq) enq.status = 'Accepted';
+    
+    localStorage.setItem('dealer_ds', JSON.stringify(ds));
+    localStorage.setItem('dealer_enquiries', JSON.stringify(enquiries));
     alert(`DEMO MODE: Deducted ${cost} credits and accepted enquiry.`);
+    refreshDealerData();
     return;
   }
   
@@ -237,7 +259,49 @@ async function acceptEnquiry(enquiryId, cost) {
 }
 
 function resumeAssessment(id) {
-  alert('Resume logic goes here, loads assessment '+id+' to state and jumps to Step 2');
+  let assessments = [];
+  if (!window.sbClient || state.session.access_token === 'demo') {
+    assessments = JSON.parse(localStorage.getItem('dealer_assessments')) || [];
+  } else {
+    // If we had real Supabase we'd fetch it, but let's assume refreshDealerData already populated the view
+    // For now just use localStorage as fallback or wait, we don't have the global assessments array accessible here.
+    // Actually we can just read it from localStorage for demo
+    assessments = JSON.parse(localStorage.getItem('dealer_assessments')) || [];
+  }
+  
+  const ass = assessments.find(a => a.id === id);
+  if (!ass) {
+    alert('Assessment not found');
+    return;
+  }
+  
+  state.assessment_id = id;
+  state.salary = ass.safe_price_range?.max || 0; 
+  // Restore basic state
+  state.mode = 'dealer';
+  state.selectedCar = ass.selected_car;
+  
+  // Inject context bar
+  let dcb = document.getElementById('dealer-context-bar');
+  if(!dcb) {
+    dcb = document.createElement('div');
+    dcb.id = 'dealer-context-bar';
+    dcb.style = "background: var(--surface); border-bottom: 1px solid var(--gold); padding: 0.5rem 1rem; position: fixed; top: 0; left: 0; right: 0; z-index: 9999; display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--gold);";
+    document.body.appendChild(dcb);
+  }
+  dcb.innerHTML = `
+    <span>Dealer Mode: Resuming ${ass.customer_reference}</span>
+    <button class="btn-ghost" style="padding: 0 0.5rem; font-size: 0.7rem;" onclick="cancelDealerAssessment()">Cancel</button>
+  `;
+  dcb.style.display = 'flex';
+  
+  // If car selected, go to page 4
+  if (state.selectedCar) {
+    goPage(4);
+    setTimeout(() => calculateCosts(), 500);
+  } else {
+    goPage(2);
+  }
 }
 
 function startDealerAssessment() {

@@ -67,6 +67,17 @@ async function callGroqCompletions(payload) {
       lastData = data;
 
       if (response.ok) {
+        // Strip <think>...</think> blocks from reasoning/thinking models
+        if (data?.choices) {
+          data.choices = data.choices.map(choice => {
+            if (choice?.message?.content) {
+              choice.message.content = choice.message.content
+                .replace(/<think>[\s\S]*?<\/think>/gi, '')
+                .trim();
+            }
+            return choice;
+          });
+        }
         return { ok: true, status: 200, data };
       }
 

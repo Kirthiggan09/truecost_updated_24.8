@@ -7,44 +7,79 @@ async function exportTrueCostPDF() {
 
   // --- Dealer Mode: Generate Proposal ---
   let proposalRef = '';
-  if (state.mode === 'dealer' && window.supabase && state.dealership_id) {
-    // Save assessment if not saved
-    if (!state.assessment_id) {
-      const { data: ass, error: e1 } = await supabase.from('assessments').insert({
-        type: 'dealer',
-        created_by: state.user.id,
-        dealership_id: state.dealership_id,
-        customer_reference: 'Cust-' + Date.now().toString(36),
-        safe_price_range: { max: state.budget },
-        selected_car: state.selectedCar,
-        sales_status: 'New'
-      }).select().single();
-      if (ass) state.assessment_id = ass.id;
-    }
-    
-    // Deduct 1 credit
-    if (state.assessment_id) {
-      const { data: success, error: credErr } = await supabase.rpc('deduct_credits', {
-        p_dealership_id: state.dealership_id,
-        p_amount: 1,
-        p_transaction_type: 'Generate Proposal',
-        p_reference_id: state.assessment_id
-      });
+  if (state.mode === 'dealer') {
+    if (!window.supabase || state.session?.access_token === 'demo') {
+      // Demo Mode
+      let ds = JSON.parse(localStorage.getItem('dealer_ds'));
+      let assessments = JSON.parse(localStorage.getItem('dealer_assessments'));
+      let proposals = JSON.parse(localStorage.getItem('dealer_proposals'));
       
-      if (!success || credErr) {
-        alert('Insufficient credits to generate proposal.');
+      if (ds.credit_balance < 1) {
+        alert('Insufficient credits in demo mode.');
         return;
       }
       
-      // Save proposal record
+      if (!state.assessment_id) {
+        state.assessment_id = 'A-' + Date.now();
+        assessments.push({
+          id: state.assessment_id,
+          customer_reference: 'Cust-' + Date.now().toString(36),
+          safe_price_range: { max: state.budget },
+          selected_car: state.selectedCar,
+          sales_status: 'New',
+          created_at: new Date().toISOString()
+        });
+      }
+      
+      ds.credit_balance -= 1;
       proposalRef = 'PROP-' + Date.now().toString(36).toUpperCase();
-      await supabase.from('proposals').insert({
-        assessment_id: state.assessment_id,
-        proposal_reference: proposalRef
+      proposals.push({
+        proposal_reference: proposalRef,
+        assessments: assessments.find(a => a.id === state.assessment_id)
       });
       
-      // Update UI credits
-      refreshDealerData();
+      localStorage.setItem('dealer_ds', JSON.stringify(ds));
+      localStorage.setItem('dealer_assessments', JSON.stringify(assessments));
+      localStorage.setItem('dealer_proposals', JSON.stringify(proposals));
+      alert('DEMO MODE: Deducted 1 credit and saved proposal.');
+      
+      if(typeof refreshDealerData === 'function') refreshDealerData();
+    } else if (state.dealership_id) {
+      // Real DB Mode
+      if (!state.assessment_id) {
+        const { data: ass, error: e1 } = await supabase.from('assessments').insert({
+          type: 'dealer',
+          created_by: state.user.id,
+          dealership_id: state.dealership_id,
+          customer_reference: 'Cust-' + Date.now().toString(36),
+          safe_price_range: { max: state.budget },
+          selected_car: state.selectedCar,
+          sales_status: 'New'
+        }).select().single();
+        if (ass) state.assessment_id = ass.id;
+      }
+      
+      if (state.assessment_id) {
+        const { data: success, error: credErr } = await supabase.rpc('deduct_credits', {
+          p_dealership_id: state.dealership_id,
+          p_amount: 1,
+          p_transaction_type: 'Generate Proposal',
+          p_reference_id: state.assessment_id
+        });
+        
+        if (!success || credErr) {
+          alert('Insufficient credits to generate proposal.');
+          return;
+        }
+        
+        proposalRef = 'PROP-' + Date.now().toString(36).toUpperCase();
+        await supabase.from('proposals').insert({
+          assessment_id: state.assessment_id,
+          proposal_reference: proposalRef
+        });
+        
+        if(typeof refreshDealerData === 'function') refreshDealerData();
+      }
     }
   }
 
