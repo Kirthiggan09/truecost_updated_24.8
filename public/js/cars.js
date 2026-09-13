@@ -72,6 +72,14 @@ function applyFilters() {
   const search = document.getElementById('filter-search').value.trim().toLowerCase();
 
   const prefs = state.userPrefs || {};
+
+  // ── DEBUG: log active prefs and dataset size ──
+  console.group('[TrueCost] applyFilters()');
+  console.log('CAR_DATASET size:', CAR_DATASET.length);
+  console.log('Active prefs:', JSON.stringify(prefs));
+  console.log('UI filters → make:', make, '| model:', model, '| cond:', cond, '| body:', uiBodyType, '| maxPrice:', maxPrice);
+  // ─────────────────────────────────────────────
+
   let baseDataset = CAR_DATASET;
   const activeChips = [];
 
@@ -91,14 +99,12 @@ function applyFilters() {
     const targetLoc2 = prefs.location.toLowerCase() === 'penang' ? 'penang' : (prefs.location.toLowerCase() === 'kuala lumpur' ? 'kl' : targetLoc1);
 
     baseDataset = baseDataset.filter(c => {
-      // AI recommendations bypass Car Preferences entirely
       if (isAiReco(c.id)) return true;
-      // New cars are nationwide; do not filter them out by location
       if (c.condition === 'New') return true;
-
       const carLoc = norm(c.location || '');
       return carLoc.includes(targetLoc1) || carLoc.includes(targetLoc2);
     });
+    console.log('After location filter:', baseDataset.length, 'cars');
   }
 
   // 2. Body Type (Strict)
@@ -109,6 +115,7 @@ function applyFilters() {
       const carBody = (c.bodyType || '').toLowerCase();
       return prefs.bodyType.some(bt => carBody.includes(bt.toLowerCase()));
     });
+    console.log('After bodyType filter:', baseDataset.length, 'cars');
   }
 
   // 3. Seating Capacity (Strict)
@@ -116,7 +123,7 @@ function applyFilters() {
     prefs.seats.forEach(st => activeChips.push({ key: 'seats', val: st, label: st + ' Seats' }));
     baseDataset = baseDataset.filter(c => {
       if (isAiReco(c.id)) return true;
-      const carSeats = c.seats || 5; // Default to 5 if missing in DB
+      const carSeats = c.seats || 5;
       return prefs.seats.some(seatPref => {
         if (seatPref === '2') return carSeats <= 2;
         if (seatPref === '4') return carSeats === 4;
@@ -126,6 +133,7 @@ function applyFilters() {
         return false;
       });
     });
+    console.log('After seats filter:', baseDataset.length, 'cars');
   }
 
   // 4. Engine Type (Strict)
@@ -133,14 +141,16 @@ function applyFilters() {
     prefs.engineType.forEach(et => activeChips.push({ key: 'engineType', val: et, label: et }));
     baseDataset = baseDataset.filter(c => {
       if (isAiReco(c.id)) return true;
-      const isHybrid = (c.engineType === 'Hybrid' || c.engineType === 'Electric');
-      const isPetrol = (c.engineType === 'Petrol' || c.engineType === 'Diesel');
-      return prefs.engineType.some(et => {
-        if (et === 'Hybrid' && isHybrid) return true;
-        if (et === 'Petrol' && isPetrol) return true;
+      const et = (c.engineType || 'Petrol');
+      const isPetrol = (et === 'Petrol' || et === 'Gasoline' || et === 'Diesel');
+      const isHybrid = (et === 'Hybrid' || et === 'Electric');
+      return prefs.engineType.some(pref => {
+        if (pref === 'Hybrid' && isHybrid) return true;
+        if (pref === 'Petrol' && isPetrol) return true;
         return false;
       });
     });
+    console.log('After engineType filter:', baseDataset.length, 'cars');
   }
 
   // 5. Drive Config (Strict)
@@ -151,7 +161,10 @@ function applyFilters() {
       const carDt = (c.drivetrain || '').toLowerCase();
       return prefs.drivetrain.some(dt => carDt.includes(dt.toLowerCase()));
     });
+    console.log('After drivetrain filter:', baseDataset.length, 'cars');
   }
+
+  console.log('baseDataset after all pref filters:', baseDataset.length, 'cars');
 
   // Render Active Filters UI
   const filtersContainer = document.getElementById('active-filters-container');
@@ -189,7 +202,10 @@ function applyFilters() {
     return true;
   });
 
-  // Calculate pref scores for sorting (only affordability matters now since rest are strict filters)
+  console.log('filteredCars (final, shown in grid):', filteredCars.length);
+  console.groupEnd();
+
+  // Calculate pref scores for sorting
   filteredCars.forEach(car => {
     car._prefScore = 0;
     if (state.budget > 0) {

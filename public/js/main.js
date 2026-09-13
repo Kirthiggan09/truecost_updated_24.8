@@ -77,7 +77,12 @@ async function initApp() {
         transmission: car.transmission,
         engine: engineLabel,
         engineCC: engineCC,
-        engineType: car.engine_type || 'Petrol',
+        engineType: (() => {
+          const et = (car.engine_type || '').trim();
+          if (!et) return 'Petrol';
+          if (et === 'Gasoline') return 'Petrol'; // normalize DB variant
+          return et;
+        })(),
         seats: car.seat_capacity || 5,
         drivetrain: car.drivetrain || '2WD',
         origin: car.country_of_origin || 'Unknown',
@@ -175,15 +180,9 @@ function updatePrefSummary() {
  * Apply preferences as filters on the Car Selection page, then navigate to page 3.
  */
 function applyPrefsAndGo() {
-  const prefs = state.userPrefs;
-
-  // Apply body type filter if exactly one selected
+  // Reset all page-3 dropdown filters so only the pref strict-filters apply
   const bodyFilter = document.getElementById('filter-body');
-  if (bodyFilter && prefs.bodyType && prefs.bodyType.length === 1) {
-    bodyFilter.value = prefs.bodyType[0];
-  } else if (bodyFilter) {
-    bodyFilter.value = '';
-  }
+  if (bodyFilter) bodyFilter.value = '';
 
   // Pre-score cars using preferences and re-sort
   if (typeof applyFilters === 'function') applyFilters();
